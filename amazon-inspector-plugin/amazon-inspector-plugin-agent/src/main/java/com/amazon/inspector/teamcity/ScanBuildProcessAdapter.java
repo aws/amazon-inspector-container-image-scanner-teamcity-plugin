@@ -1,5 +1,6 @@
 package com.amazon.inspector.teamcity;
 
+import com.amazon.inspector.teamcity.bomerman.BomermanRunner;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -36,6 +37,12 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     }
 
     private void ScanRequestHandler(Map<String, String> runnerParameters) throws Exception {
-        progressLogger.message("Successful");
+        String bomermanPath = "/Users/waltwilo/workplace/EeveeCICDPlugin/src/EeveeCICDTeamcityPlugin/" +
+                "amazon-inspector-plugin/amazon-inspector-plugin-agent/src/main/resources/" +
+                "bomerman_macos_amd64";
+        String archivePath = build.getRunnerParameters().get(ScanConstants.ARCHIVE_PATH);
+        String sbom = new BomermanRunner(bomermanPath, archivePath).run();
+
+        progressLogger.message(sbom);
     }
 }
