@@ -1,5 +1,6 @@
 package com.amazon.inspector.teamcity;
 
+import com.amazon.inspector.teamcity.bomerman.BomermanJarHandler;
 import com.amazon.inspector.teamcity.bomerman.BomermanRunner;
 import com.amazon.inspector.teamcity.csvconversion.CsvConverter;
 import com.amazon.inspector.teamcity.models.sbom.Sbom;
@@ -16,12 +17,13 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
+import java.io.File;
 import java.util.Map;
 
 
 public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     public static BuildProgressLogger publicProgressLogger;
+    
     public ScanBuildProcessAdapter(
             @NotNull final ArtifactsWatcher artifactsWatcher,
             @NotNull final AgentRunningBuild build,
@@ -46,14 +48,19 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     }
 
     private void ScanRequestHandler(Map<String, String> runnerParameters) throws Exception {
-        String bomermanPath = "/Users/waltwilo/workplace/EeveeCICDPlugin/src/EeveeCICDTeamcityPlugin/" +
-                "amazon-inspector-plugin/amazon-inspector-plugin-agent/src/main/resources/" +
-                "bomerman_macos_amd64";
-        String archivePath = build.getRunnerParameters().get(ScanConstants.ARCHIVE_PATH);
+        String jarPath = new File(ScanBuildProcessAdapter.class.getProtectionDomain().getCodeSource().getLocation()
+        .toURI()).getPath();
+
+        String tmpDirPath = build.getBuildTempDirectory().getAbsolutePath();
+        String bomermanPath = new BomermanJarHandler(jarPath).copyBomermanToDir(tmpDirPath);
+
+        progressLogger.message(build.getBuildTempDirectory().getAbsolutePath());
+
+        String archivePath = runnerParameters.get(ScanConstants.ARCHIVE_PATH);
         String sbom = new BomermanRunner(bomermanPath, archivePath).run();
 
-        String roleArn = build.getRunnerParameters().get(ScanConstants.ROLE_ARN);
-        String region = build.getRunnerParameters().get(ScanConstants.REGION);
+        String roleArn = runnerParameters.get(ScanConstants.ROLE_ARN);
+        String region = runnerParameters.get(ScanConstants.REGION);
         String validatedSbom = new SdkRequests(region, roleArn).requestSbom(sbom).toString();
 
         SbomData sbomData = SbomData.builder().sbom(new Gson().fromJson(validatedSbom, Sbom.class)).build();
@@ -64,7 +71,10 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         if (results.hasVulnerabilites()) {
             progressLogger.message("Converting SBOM Results to CSV.");
             CsvConverter csvConverter = new CsvConverter(sbomData);
-            csvConverter.convert("/Users/waltwilo/Downloads/results.csv");
+
+            String outPath = String.format("%s/results-%s-%s.csv", tmpDirPath, build.getProjectName(), 
+                    build.getBuildNumber());
+            csvConverter.convert(outPath);
         }
 
         boolean doesBuildPass = !doesBuildFail(results.getCounts());
@@ -76,10 +86,10 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     }
 
     public boolean doesBuildFail(Map<Severity, Integer> counts) {
-        String countCritical = build.getRunnerParameters().get(ScanConstants.COUNT_CRITICAL);
-        String countHigh = build.getRunnerParameters().get(ScanConstants.COUNT_HIGH);
-        String countMedium = build.getRunnerParameters().get(ScanConstants.COUNT_MEDIUM);
-        String countLow = build.getRunnerParameters().get(ScanConstants.COUNT_LOW);
+        String countCritical = runnerParameters.get(ScanConstants.COUNT_CRITICAL);
+        String countHigh = runnerParameters.get(ScanConstants.COUNT_HIGH);
+        String countMedium = runnerParameters.get(ScanConstants.COUNT_MEDIUM);
+        String countLow = runnerParameters.get(ScanConstants.COUNT_LOW);
 
         boolean criticalExceedsLimit = counts.get(Severity.CRITICAL) > Integer.parseInt(countCritical);
         boolean highExceedsLimit = counts.get(Severity.HIGH) > Integer.parseInt(countHigh);
@@ -89,7 +99,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         return criticalExceedsLimit || highExceedsLimit || mediumExceedsLimit || lowExceedsLimit;
     }
 
-    private void scanRequestSuccessHandler() throws IOException {
+    private void scanRequestSuccessHandler() {
         progressLogger.message("Build finished successfully.");
     }
 
