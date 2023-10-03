@@ -12,14 +12,13 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <version>1.18.26</version>
-      <scope>compile</scope>
+      <version>1.18.30</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.jetbrains.teamcity</groupId>
       <artifactId>agent-api</artifactId>
-      <!-- <version>2020.1.1</version> -->
       <version>${teamcity-version}</version>
       <scope>provided</scope>
       <exclusions>
@@ -118,6 +117,12 @@
           <artifactId>*</artifactId>
         </exclusion>
       </exclusions>
+    </dependency>
+
+    <dependency>
+      <groupId>com.opencsv</groupId>
+      <artifactId>opencsv</artifactId>
+      <version>5.8</version>
     </dependency>
   </dependencies>
 
