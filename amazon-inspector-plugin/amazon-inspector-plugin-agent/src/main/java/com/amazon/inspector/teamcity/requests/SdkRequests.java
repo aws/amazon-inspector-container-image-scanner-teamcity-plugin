@@ -1,7 +1,6 @@
 package com.amazon.inspector.teamcity.requests;
 
 import com.amazon.inspector.teamcity.ScanBuildProcessAdapter;
-import lombok.AllArgsConstructor;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;

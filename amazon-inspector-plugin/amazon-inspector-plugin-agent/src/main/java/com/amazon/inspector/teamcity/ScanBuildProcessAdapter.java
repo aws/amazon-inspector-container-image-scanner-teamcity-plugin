@@ -1,7 +1,14 @@
 package com.amazon.inspector.teamcity;
 
 import com.amazon.inspector.teamcity.bomerman.BomermanRunner;
+import com.amazon.inspector.teamcity.csvconversion.CsvConverter;
+import com.amazon.inspector.teamcity.models.sbom.Sbom;
+import com.amazon.inspector.teamcity.models.sbom.SbomData;
 import com.amazon.inspector.teamcity.requests.SdkRequests;
+import com.amazon.inspector.teamcity.sbomparsing.Results;
+import com.amazon.inspector.teamcity.sbomparsing.SbomOutputParser;
+import com.amazon.inspector.teamcity.sbomparsing.Severity;
+import com.google.gson.Gson;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -9,6 +16,7 @@ import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.IOException;
 import java.util.Map;
 
 
@@ -48,6 +56,45 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         String region = build.getRunnerParameters().get(ScanConstants.REGION);
         String validatedSbom = new SdkRequests(region, roleArn).requestSbom(sbom).toString();
 
-        progressLogger.message(validatedSbom);
+        SbomData sbomData = SbomData.builder().sbom(new Gson().fromJson(validatedSbom, Sbom.class)).build();
+        SbomOutputParser parser = new SbomOutputParser(sbomData);
+        Results results = parser.parseSbom();
+        progressLogger.message(results.toString());
+
+        if (results.hasVulnerabilites()) {
+            progressLogger.message("Converting SBOM Results to CSV.");
+            CsvConverter csvConverter = new CsvConverter(sbomData);
+            csvConverter.convert("/Users/waltwilo/Downloads/results.csv");
+        }
+
+        boolean doesBuildPass = !doesBuildFail(results.getCounts());
+        if (doesBuildPass) {
+            scanRequestSuccessHandler();
+        } else {
+            scanRequestFailureHandler();
+        }
+    }
+
+    public boolean doesBuildFail(Map<Severity, Integer> counts) {
+        String countCritical = build.getRunnerParameters().get(ScanConstants.COUNT_CRITICAL);
+        String countHigh = build.getRunnerParameters().get(ScanConstants.COUNT_HIGH);
+        String countMedium = build.getRunnerParameters().get(ScanConstants.COUNT_MEDIUM);
+        String countLow = build.getRunnerParameters().get(ScanConstants.COUNT_LOW);
+
+        boolean criticalExceedsLimit = counts.get(Severity.CRITICAL) > Integer.parseInt(countCritical);
+        boolean highExceedsLimit = counts.get(Severity.HIGH) > Integer.parseInt(countHigh);
+        boolean mediumExceedsLimit = counts.get(Severity.MEDIUM) > Integer.parseInt(countMedium);
+        boolean lowExceedsLimit = counts.get(Severity.LOW) > Integer.parseInt(countLow);
+
+        return criticalExceedsLimit || highExceedsLimit || mediumExceedsLimit || lowExceedsLimit;
+    }
+
+    private void scanRequestSuccessHandler() throws IOException {
+        progressLogger.message("Build finished successfully.");
+    }
+
+    private void scanRequestFailureHandler() throws RunBuildException {
+        progressLogger.message("Vulnerabilities found in SBOM exceeded config, failing build.");
+        throw new RunBuildException("Failed to start the scan. Response status code: ");
     }
 }
