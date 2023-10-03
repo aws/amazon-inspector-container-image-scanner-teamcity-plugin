@@ -1,6 +1,7 @@
 package com.amazon.inspector.teamcity;
 
 import com.amazon.inspector.teamcity.bomerman.BomermanRunner;
+import com.amazon.inspector.teamcity.requests.SdkRequests;
 import jetbrains.buildServer.RunBuildException;
 import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildProgressLogger;
@@ -43,6 +44,10 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         String archivePath = build.getRunnerParameters().get(ScanConstants.ARCHIVE_PATH);
         String sbom = new BomermanRunner(bomermanPath, archivePath).run();
 
-        progressLogger.message(sbom);
+        String roleArn = build.getRunnerParameters().get(ScanConstants.ROLE_ARN);
+        String region = build.getRunnerParameters().get(ScanConstants.REGION);
+        String validatedSbom = new SdkRequests(region, roleArn).requestSbom(sbom).toString();
+
+        progressLogger.message(validatedSbom);
     }
 }
