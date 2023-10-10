@@ -9,4 +9,5 @@ public class ScanConstants {
 	public static final String COUNT_MEDIUM = "countMedium";
 	public static final String COUNT_LOW = "countLow";
 	public static final String REGION = "region";
+    public static final String OUTPUT_DIR = "outputDir";
 }
