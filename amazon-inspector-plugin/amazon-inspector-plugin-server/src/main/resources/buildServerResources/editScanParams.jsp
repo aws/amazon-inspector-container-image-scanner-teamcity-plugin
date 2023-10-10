@@ -11,11 +11,21 @@
 <c:set var="countHigh" value="<%=ScanConstants.COUNT_HIGH%>"/>
 <c:set var="countMedium" value="<%=ScanConstants.COUNT_MEDIUM%>"/>
 <c:set var="countLow" value="<%=ScanConstants.COUNT_LOW%>"/>
+<c:set var="outputDir" value="<%=ScanConstants.OUTPUT_DIR%>"/>
 
-<l:settingsGroup title="My Runner settings">
+<l:settingsGroup title="Scan Settings">
+    <tr>
+        <th><label size="10" for="${outputDir}">Build Info Output Dir: <l:star/></label></th>
+        <td>
+            <div class="posRel">
+                <props:textProperty name="${outputDir}" size="56" maxlength="100"/>
+                <span class="error" id="error_${outputDir}"></span>
+            </div>
+        </td>
+    </tr>
     <tr>
         <th><label size="10" for="${archivePath}">Archive Path: <l:star/></label></th>
-        <td>6
+        <td>
             <div class="posRel">
                 <props:textProperty name="${archivePath}" size="56" maxlength="100"/>
                 <span class="error" id="error_${archivePath}"></span>
@@ -31,14 +41,16 @@
             </div>
         </td>
     </tr>
-    <th><label size="10" for="${region}">Region: <l:star/></label></th>
-    <td>
-        <div class="posRel">
-            <props:textProperty name="${region}" size="56" maxlength="100"/>
-            <span class="error" id="error_${region}"></span>
-        </div>
-    </td>
+        <th><label size="10" for="${region}">Region: <l:star/></label></th>
+        <td>
+            <div class="posRel">
+                <props:textProperty name="${region}" size="56" maxlength="100"/>
+                <span class="error" id="error_${region}"></span>
+            </div>
+        </td>
     </tr>
+</l:settingsGroup>
+<l:settingsGroup title="Vulnerability Thresholds">
     <tr>
         <th><label size="10" for="${countCritical}">Count Critical: <l:star/></label></th>
         <td>

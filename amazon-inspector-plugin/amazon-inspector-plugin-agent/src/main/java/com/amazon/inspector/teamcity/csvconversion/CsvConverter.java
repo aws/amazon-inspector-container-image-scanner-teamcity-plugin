@@ -6,12 +6,12 @@ import com.amazon.inspector.teamcity.models.sbom.Components.Property;
 import com.amazon.inspector.teamcity.models.sbom.Components.Rating;
 import com.amazon.inspector.teamcity.models.sbom.Components.Vulnerability;
 import com.amazon.inspector.teamcity.models.sbom.SbomData;
+import com.intellij.openapi.util.text.StringUtil;
 import com.opencsv.CSVWriter;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -56,8 +56,9 @@ public class CsvConverter {
 
     protected List<String []> buildCsvDataLines() {
         List<String[]> dataLines = new ArrayList<>();
-        String[] headers = new String[] {"CVE", "Severity", "Description", "Package Name", "Package Installed Version",
-                "Package Fixed Version", "Exploit Available"};
+        String[] headers = new String[] {"Vulnerability ID", "Severity", "Published", "Modified", "Description",
+                "Package Installed Version", "Package Fixed Version", "EPSS Score", "Exploit Available",
+                "Exploit Last Seen", "CWEs"};
         dataLines.add(headers);
 
         List<Vulnerability> vulnerabilities = sbomData.getSbom().getVulnerabilities();
@@ -70,10 +71,11 @@ public class CsvConverter {
             for (Affect componentRef : vulnerability.getAffects()) {
                 CsvData csvData = buildCsvData(vulnerability, componentMap.get(componentRef.getRef()));
 
-                String[] dataLine = new String[] {csvData.getCve(), csvData.getSeverity(),
-                        csvData.getDescription(), csvData.getPackageName(),
-                        csvData.getPackageInstalledVersion(), csvData.getPackageFixedVersion(),
-                        csvData.getExploitAvailable()};
+                String[] dataLine = new String[] {csvData.getVulnerabilityId(),
+                        StringUtil.capitalize(csvData.getSeverity()), csvData.getPublished(), csvData.getModified(),
+                        csvData.getDescription(), csvData.getPackageInstalledVersion(),
+                        csvData.getPackageFixedVersion(), csvData.getEpssScore(),
+                        csvData.getExploitAvailable(), csvData.getExploitLastSeen(), csvData.getCwes()};
 
                 dataLines.add(dataLine);
             }
@@ -84,43 +86,77 @@ public class CsvConverter {
 
     public CsvData buildCsvData(Vulnerability vulnerability, Component component) {
         String installedVersion = getInstalledVersion(component);
-        String fixedVersion = getFixedVersion(vulnerability, component.getBomRef());
-        String exploitAvailable = getExploitAvailable(vulnerability);
+        String fixedVersion = getPropertyValueFromKey(vulnerability,
+                String.format("amazon:inspector:sbom_scanner:fixed_version:%s",  component.getBomRef()));
+        String exploitAvailable = getPropertyValueFromKey(vulnerability,
+                "amazon:inspector:sbom_scanner:exploit_available");
+        String exploitLastSeen = getPropertyValueFromKey(vulnerability,
+                "amazon:inspector:sbom_scanner:exploit_last_seen_in_public");
 
         return CsvData.builder()
-                .cve(vulnerability.getId())
+                .vulnerabilityId(vulnerability.getId())
                 .severity(getSeverity(vulnerability))
-                .description(String.format("\"%s\"", vulnerability.getDescription().replace(",", ".")))
-                .packageName(component.getName())
-                .packageFixedVersion(fixedVersion)
+                .published(vulnerability.getCreated())
+                .modified(getUpdated(vulnerability))
+                .epssScore(getEpssScore(vulnerability))
+                .description(vulnerability.getDescription())
                 .packageInstalledVersion(installedVersion)
-                .exploitAvailable(String.format("\"%s\"", exploitAvailable))
+                .packageFixedVersion(fixedVersion)
+                .packagePath("N/A")
+                .cwes(getCwesAsString(vulnerability))
+                .exploitAvailable(exploitAvailable)
+                .exploitLastSeen(exploitLastSeen)
                 .build();
     }
 
-    protected String getExploitAvailable(Vulnerability vulnerability) {
-        final String exploitAvailableName = "amazon:inspector:sbom_scanner:exploit_available";
-
-        for (Property property : vulnerability.getProperties()) {
-            if (property.getName().equals(exploitAvailableName)) {
-                return property.getName();
-            }
+    private String getUpdated(Vulnerability vulnerability) {
+        if (vulnerability == null || vulnerability.getUpdated() == null) {
+            return "N/A";
         }
-        return "";
+
+        return vulnerability.getUpdated();
     }
 
-    protected String getFixedVersion(Vulnerability vulnerability, String componentKey) {
-        final String fixedVersionName =
-                String.format("amazon:inspector:sbom_scanner:fixed_version:%s", componentKey);
+    protected String getCwesAsString(Vulnerability vulnerability) {
+        List<String> cwes = new ArrayList<>();
+
+        if (vulnerability == null || vulnerability.getCwes() == null) {
+            return "";
+        }
+
+        for (Integer cwe : vulnerability.getCwes()) {
+            cwes.add(String.format("CWE-%s", cwe.toString()));
+        }
+
+        return String.join(", ", cwes);
+    }
+
+    protected String getEpssScore(Vulnerability vulnerability) {
+        if (vulnerability == null || vulnerability.getRatings() == null) {
+            return "N/A";
+        }
+
+        for (Rating rating : vulnerability.getRatings()) {
+            if (rating.getSource().getName().equals("EPSS")) {
+                return Double.toString(rating.getScore());
+            }
+        }
+
+        return "N/A";
+    }
+
+    protected String getPropertyValueFromKey(Vulnerability vulnerability, String key) {
+        if (vulnerability == null) {
+            return "N/A";
+        }
 
         for (Property property : vulnerability.getProperties()) {
-            if (property.getName().equals(fixedVersionName)) {
+            if (property.getName().equals(key)) {
                 return property.getValue();
             }
         }
 
-        throw new RuntimeException(String.format("No fixed version for name %s in %s", fixedVersionName,
-                vulnerability.getBomRef()));
+        return "N/A";
     }
 
     protected String getInstalledVersion(Component component) {
@@ -138,6 +174,10 @@ public class CsvConverter {
     }
 
     protected String getSeverity(Vulnerability vulnerability) {
+        if (vulnerability == null || vulnerability.getRatings() == null) {
+            return "";
+        }
+
         List<Rating> ratings = vulnerability.getRatings();
         final String nvd = "NVD";
         final String cvss = "CVSSv3";
