@@ -62,14 +62,10 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     }
 
     private void ScanRequestHandler(Map<String, String> runnerParameters) throws Exception {
-
-        progressLogger.message(ServerPaths.PLUGIN_DATA_DIRECTORY_NAME);
         String jarPath = new File(ScanBuildProcessAdapter.class.getProtectionDomain().getCodeSource().getLocation()
         .toURI()).getPath();
 
-        File outputDir = new File(String.format("%s/%s", runnerParameters.get(ScanConstants.OUTPUT_DIR), build.getBuildNumber()));
-        outputDir.mkdirs();
-        String teamcityDirPath = outputDir.getAbsolutePath();
+        String teamcityDirPath = build.getCheckoutDirectory().getAbsolutePath();
 
         String bomermanPath = new BomermanJarHandler(jarPath).copyBomermanToDir(teamcityDirPath);
 

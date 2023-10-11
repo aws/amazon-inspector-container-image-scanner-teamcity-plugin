@@ -15,15 +15,6 @@
 
 <l:settingsGroup title="Scan Settings">
     <tr>
-        <th><label size="10" for="${outputDir}">Build Info Output Dir: <l:star/></label></th>
-        <td>
-            <div class="posRel">
-                <props:textProperty name="${outputDir}" size="56" maxlength="100"/>
-                <span class="error" id="error_${outputDir}"></span>
-            </div>
-        </td>
-    </tr>
-    <tr>
         <th><label size="10" for="${archivePath}">Archive Path: <l:star/></label></th>
         <td>
             <div class="posRel">
