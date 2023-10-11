@@ -3,6 +3,7 @@ package com.amazon.inspector.teamcity.sbomparsing;
 import com.amazon.inspector.teamcity.models.sbom.Components.Rating;
 import com.amazon.inspector.teamcity.models.sbom.Components.Vulnerability;
 import com.amazon.inspector.teamcity.models.sbom.SbomData;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.Getter;
 
 import java.util.List;
@@ -33,8 +34,13 @@ public class SbomOutputParser {
         return results;
     }
 
+    @VisibleForTesting
     protected Severity getHighestRatingFromList(List<Rating> ratings) {
         Severity highestSeverity = null;
+
+        if (ratings == null || ratings.size() == 0) {
+            return Severity.NONE;
+        }
 
         for (Rating rating : ratings) {
             Severity severity = Severity.getSeverityFromString(rating.getSeverity());
