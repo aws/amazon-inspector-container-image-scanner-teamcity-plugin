@@ -66,10 +66,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         .toURI()).getPath();
 
         String teamcityDirPath = build.getCheckoutDirectory().getAbsolutePath();
-
         String bomermanPath = new BomermanJarHandler(jarPath).copyBomermanToDir(teamcityDirPath);
-
-        progressLogger.message(teamcityDirPath);
 
         String archivePath = runnerParameters.get(ScanConstants.ARCHIVE_PATH);
         String sbom = new BomermanRunner(bomermanPath, archivePath).run();
@@ -87,7 +84,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
 
         SbomOutputParser parser = new SbomOutputParser(sbomData);
         Results results = parser.parseSbom();
-        progressLogger.message(results.toString());
 
         progressLogger.message("Converting SBOM Results to CSV.");
         CsvConverter csvConverter = new CsvConverter(sbomData);
@@ -107,41 +103,41 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
             }
         }
 
-//        String[] splitName = component.get("name").getAsString().split(":");
-//        String tag = null;
-//        if (splitName.length > 1) {
-//            tag = splitName[1];
-//        }
-//
-//        HtmlData htmlData = HtmlData.builder()
-//                .jsonFilePath(sbomPath)
-//                .csvFilePath(csvPath)
-//                .imageMetadata(ImageMetadata.builder()
-//                        .id(splitName[0])
-//                        .tags(tag)
-//                        .sha(imageSha)
-//                        .build())
-//                .severityValues(SeverityValues.builder()
-//                        .critical(results.getCounts().get(Severity.CRITICAL))
-//                        .high(results.getCounts().get(Severity.HIGH))
-//                        .medium(results.getCounts().get(Severity.MEDIUM))
-//                        .low(results.getCounts().get(Severity.LOW))
-//                        .build())
-//                .vulnerabilities(HtmlConversionUtils.convertVulnerabilities(sbomData.getSbom().getVulnerabilities(),
-//                        sbomData.getSbom().getComponents()))
-//                .build();
-//
-//        HtmlJarHandler htmlJarHandler = new HtmlJarHandler(jarPath);
-//        String htmlPath = htmlJarHandler.copyHtmlToDir(teamcityDirPath);
-//
-//        String html = new Gson().toJson(htmlData);
-//        new HtmlGenerator(htmlPath).generateNewHtml(html);
+        String[] splitName = component.get("name").getAsString().split(":");
+        String tag = null;
+        if (splitName.length > 1) {
+            tag = splitName[1];
+        }
 
+        HtmlData htmlData = HtmlData.builder()
+                .jsonFilePath(sbomPath)
+                .csvFilePath(csvPath)
+                .imageMetadata(ImageMetadata.builder()
+                        .id(splitName[0])
+                        .tags(tag)
+                        .sha(imageSha)
+                        .build())
+                .severityValues(SeverityValues.builder()
+                        .critical(results.getCounts().get(Severity.CRITICAL))
+                        .high(results.getCounts().get(Severity.HIGH))
+                        .medium(results.getCounts().get(Severity.MEDIUM))
+                        .low(results.getCounts().get(Severity.LOW))
+                        .build())
+                .vulnerabilities(HtmlConversionUtils.convertVulnerabilities(sbomData.getSbom().getVulnerabilities(),
+                        sbomData.getSbom().getComponents()))
+                .build();
+
+        HtmlJarHandler htmlJarHandler = new HtmlJarHandler(jarPath);
+        String htmlPath = htmlJarHandler.copyHtmlToDir(teamcityDirPath);
+
+        String html = new Gson().toJson(htmlData);
+        new HtmlGenerator(htmlPath).generateNewHtml(html);
 
         progressLogger.message(String.format("CSV Output File: file://%s\n", csvPath.replace(" ", "%20")));
         progressLogger.message(String.format("SBOM Output File: file://%s\n", sbomPath.replace(" ", "%20")));
-//        progressLogger.message(String.format("HTML Report File: file://%s\n", htmlPath.replace(" ", "%20")));
-
+        progressLogger.message(String.format("HTML Report File: file://%s\n", htmlPath.replace(" ", "%20")));
+        progressLogger.message("\n");
+        progressLogger.message(results.toString());
         boolean doesBuildPass = !doesBuildFail(results.getCounts());
         if (doesBuildPass) {
             scanRequestSuccessHandler();
@@ -181,7 +177,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     }
 
     private void scanRequestFailureHandler() throws RunBuildException {
-        progressLogger.message("Vulnerabilities found in SBOM exceeded config, failing build.");
-        throw new RunBuildException("Failed to start the scan. Response status code: ");
+        throw new RunBuildException("Vulnerabilities found in SBOM exceeded config, failing build.");
     }
 }
