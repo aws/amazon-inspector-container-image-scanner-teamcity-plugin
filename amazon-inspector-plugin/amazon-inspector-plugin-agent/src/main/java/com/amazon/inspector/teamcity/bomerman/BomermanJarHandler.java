@@ -1,5 +1,8 @@
 package com.amazon.inspector.teamcity.bomerman;
 
+
+import com.amazon.inspector.teamcity.exception.BomermanNotFoundException;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -9,6 +12,7 @@ import java.util.jar.JarFile;
 
 import static com.amazon.inspector.teamcity.bomerman.BomermanConstants.BOMERMAN_NAME;
 
+
 public class BomermanJarHandler {
     public String jarPath;
 
@@ -16,11 +20,20 @@ public class BomermanJarHandler {
         this.jarPath = jarPath;
     }
 
-    public String copyBomermanToDir(String destDirPath) throws IOException {
+    public static String getOperatingSystem() {
+        return System.getProperty("os.name");
+    }
+
+    public static String getCpuArch() {
+        return System.getProperty("os.arch");
+    }
+
+    public String copyBomermanToDir(String destDirPath) throws IOException, BomermanNotFoundException {
         File tempFile = new File(destDirPath, BOMERMAN_NAME);
 
         JarFile jarFile = new JarFile(jarPath);
-        JarEntry entry = jarFile.getJarEntry(BOMERMAN_NAME);
+
+        JarEntry entry = jarFile.getJarEntry(BomermanVersionManager.getBomermanName(getOperatingSystem(), getCpuArch()));
         try (InputStream inputStream = jarFile.getInputStream(entry);
              FileOutputStream outputStream = new FileOutputStream(tempFile)) {
             byte[] buffer = new byte[4096];
@@ -35,3 +48,4 @@ public class BomermanJarHandler {
         return tempFile.getAbsolutePath();
     }
 }
+
