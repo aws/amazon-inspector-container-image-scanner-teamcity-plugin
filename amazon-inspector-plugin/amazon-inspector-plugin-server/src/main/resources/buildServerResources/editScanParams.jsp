@@ -50,6 +50,8 @@
                 <span class="error" id="error_${countCritical}"></span>
             </div>
         </td>
+    </tr>
+    <tr>
         <th><label size="10" for="${countHigh}">Count High: <l:star/></label></th>
         <td>
             <div class="posRel">
@@ -57,6 +59,8 @@
                 <span class="error" id="error_${countHigh}"></span>
             </div>
         </td>
+    </tr>
+    <tr>
         <th><label size="10" for="${countMedium}">Count Medium: <l:star/></label></th>
         <td>
             <div class="posRel">
@@ -64,6 +68,8 @@
                 <span class="error" id="error_${countMedium}"></span>
             </div>
         </td>
+    </tr>
+    <tr>
         <th><label size="10" for="${countLow}">Count Low: <l:star/></label></th>
         <td>
             <div class="posRel">
