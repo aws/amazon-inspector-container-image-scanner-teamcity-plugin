@@ -69,7 +69,9 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         String bomermanPath = new BomermanJarHandler(jarPath).copyBomermanToDir(teamcityDirPath);
 
         String archivePath = runnerParameters.get(ScanConstants.ARCHIVE_PATH);
-        String sbom = new BomermanRunner(bomermanPath, archivePath).run();
+        String dockerUsername = runnerParameters.get(ScanConstants.DOCKER_USERNAME);
+        String dockerPassword = runnerParameters.get(ScanConstants.DOCKER_PASSWORD);
+        String sbom = new BomermanRunner(bomermanPath, archivePath, dockerUsername, dockerPassword).run();
 
         String roleArn = runnerParameters.get(ScanConstants.ROLE_ARN);
         String region = runnerParameters.get(ScanConstants.REGION);
