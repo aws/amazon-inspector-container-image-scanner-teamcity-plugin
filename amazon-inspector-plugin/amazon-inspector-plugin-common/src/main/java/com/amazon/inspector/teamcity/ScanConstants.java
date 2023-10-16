@@ -10,4 +10,6 @@ public class ScanConstants {
 	public static final String COUNT_LOW = "countLow";
 	public static final String REGION = "region";
     public static final String OUTPUT_DIR = "outputDir";
+	public static final String DOCKER_USERNAME = "dockerUsername";
+	public static final String DOCKER_PASSWORD = "dockerPassword";
 }
