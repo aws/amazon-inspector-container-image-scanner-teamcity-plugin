@@ -7413,7 +7413,7 @@ table and the footer
   
       baseInfo[1].innerText = result.imageMetadata.id;
       if (result.imageMetadata.tags != null) {
-        baseInfo[1] += ":" + result.imageMetadata.tags;
+        baseInfo[1].innerText += ":" + result.imageMetadata.tags;
       }
 
       baseInfo[2].innerText = result.imageMetadata.sha;

@@ -48,7 +48,7 @@
         <th><label size="10" for="${dockerUsername}">Docker Username: <l:star/></label></th>
         <td>
             <div class="posRel">
-                <props:textProperty name="${dockerUsername}" size="10" maxlength="100"/>
+                <props:textProperty name="${dockerUsername}" size="56" maxlength="100"/>
                 <span class="error" id="error_${dockerUsername}"></span>
             </div>
         </td>
@@ -57,7 +57,7 @@
         <th><label size="10" for="${dockerPassword}">Docker Password (Input via Environment Variables): <l:star/></label></th>
         <td>
             <div class="posRel">
-                <props:textProperty name="${dockerPassword}" size="10" maxlength="100" hint="%env.dockerPassword%"/>
+                <props:textProperty name="${dockerPassword}" size="56" maxlength="100"/>
                 <span class="error" id="error_${dockerPassword}"></span>
             </div>
         </td>
