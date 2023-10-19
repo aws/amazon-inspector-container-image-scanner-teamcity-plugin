@@ -13,7 +13,6 @@ public class ScanPropertiesProcessor implements PropertiesProcessor {
 	public Collection<InvalidProperty> process(Map<String, String> properties) {
 
 		Collection<InvalidProperty> result = new HashSet<>();
-
 		return result;
 	}
 }
