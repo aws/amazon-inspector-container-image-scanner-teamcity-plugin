@@ -39,8 +39,10 @@ public class BomermanRunner {
 
         ProcessBuilder builder = new ProcessBuilder(command);
         Map<String, String> environment = builder.environment();
-        environment.put("INSPECTOR_SBOMGEN_USERNAME", dockerUsername);
-        environment.put("INSPECTOR_SBOMGEN_PASSWORD", dockerPassword);
+        if (dockerPassword != null && !dockerPassword.isEmpty()) {
+            environment.put("INSPECTOR_SBOMGEN_USERNAME", dockerUsername);
+            environment.put("INSPECTOR_SBOMGEN_PASSWORD", dockerPassword);
+        }
 
         builder.redirectErrorStream(true);
         Process p = builder.start();

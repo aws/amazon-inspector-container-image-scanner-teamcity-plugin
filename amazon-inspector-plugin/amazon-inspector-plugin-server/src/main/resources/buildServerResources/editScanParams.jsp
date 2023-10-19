@@ -11,7 +11,6 @@
 <c:set var="countHigh" value="<%=ScanConstants.COUNT_HIGH%>"/>
 <c:set var="countMedium" value="<%=ScanConstants.COUNT_MEDIUM%>"/>
 <c:set var="countLow" value="<%=ScanConstants.COUNT_LOW%>"/>
-<c:set var="outputDir" value="<%=ScanConstants.OUTPUT_DIR%>"/>
 <c:set var="dockerUsername" value="<%=ScanConstants.DOCKER_USERNAME%>"/>
 <c:set var="dockerPassword" value="<%=ScanConstants.DOCKER_PASSWORD%>"/>
 
@@ -34,18 +33,18 @@
             </div>
         </td>
     </tr>
-        <th><label size="10" for="${region}">Region: <l:star/></label></th>
         <td>
-            <div class="posRel">
-                <props:textProperty name="${region}" size="56" maxlength="100"/>
-                <span class="error" id="error_${region}"></span>
-            </div>
+            <props:selectSectionProperty name="${region}" title="Region"><l:star/>
+                <props:selectSectionPropertyContent value="us-east-1" caption="us-east-1">us-east-1</props:selectSectionPropertyContent>
+                <props:selectSectionPropertyContent value="us-west-2" caption="us-west-2">us-west-2</props:selectSectionPropertyContent>
+                <props:selectSectionPropertyContent value="eu-west-1" caption="eu-west-1">eu-west-1</props:selectSectionPropertyContent>
+            </props:selectSectionProperty>
         </td>
     </tr>
 </l:settingsGroup>
 <l:settingsGroup title="Docker Authentication">
     <tr>
-        <th><label size="10" for="${dockerUsername}">Docker Username: <l:star/></label></th>
+        <th><label size="10" for="${dockerUsername}">Docker Username: </label></th>
         <td>
             <div class="posRel">
                 <props:textProperty name="${dockerUsername}" size="56" maxlength="100"/>
@@ -54,7 +53,7 @@
         </td>
     </tr>
     <tr>
-        <th><label size="10" for="${dockerPassword}">Docker Password (Input via Environment Variables): <l:star/></label></th>
+        <th><label size="10" for="${dockerPassword}">Docker Password: </label></th>
         <td>
             <div class="posRel">
                 <props:textProperty name="${dockerPassword}" size="56" maxlength="100"/>

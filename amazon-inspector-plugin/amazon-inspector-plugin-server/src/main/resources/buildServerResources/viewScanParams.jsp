@@ -1,4 +1,3 @@
-<%@ page import="com.netsparker.teamcity.ScanConstants" %>
 <%@ page import="com.amazon.inspector.teamcity.ScanConstants" %>
 <%@ taglib prefix="props" tagdir="/WEB-INF/tags/props" %>
 <c:set var="archivePath" value="<%=ScanConstants.ARCHIVE_PATH%>"/>
