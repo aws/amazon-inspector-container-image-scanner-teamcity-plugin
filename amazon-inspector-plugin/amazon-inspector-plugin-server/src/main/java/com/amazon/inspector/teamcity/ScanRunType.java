@@ -34,7 +34,7 @@ public class ScanRunType extends RunType {
 	@NotNull
 	@Override
 	public String getDescription() {
-		return "Build runner that starts Netsparker Enterprise scan for your site.";
+		return "Build runner that starts Inspector Scan for a container image.";
 	}
 
 	@Nullable
