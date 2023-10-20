@@ -56,7 +56,7 @@
         <th><label size="10" for="${dockerPassword}">Docker Password: </label></th>
         <td>
             <div class="posRel">
-                <props:textProperty name="${dockerPassword}" size="56" maxlength="100"/>
+                <props:passwordProperty name="${dockerPassword}" size="56" maxlength="100"/>
                 <span class="error" id="error_${dockerPassword}"></span>
             </div>
         </td>
