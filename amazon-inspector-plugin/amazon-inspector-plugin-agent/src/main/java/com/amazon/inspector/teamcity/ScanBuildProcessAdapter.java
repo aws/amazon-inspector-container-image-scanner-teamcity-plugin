@@ -60,7 +60,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     }
 
     private void ScanRequestHandler(Map<String, String> runnerParameters) throws Exception {
-        progressLogger.message(runnerParameters.toString());
         String jarPath = new File(ScanBuildProcessAdapter.class.getProtectionDomain().getCodeSource().getLocation()
         .toURI()).getPath();
 
@@ -70,8 +69,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         String archivePath = runnerParameters.get(ScanConstants.ARCHIVE_PATH);
         String dockerUsername = runnerParameters.get(ScanConstants.DOCKER_USERNAME);
         String dockerPassword = runnerParameters.get(ScanConstants.DOCKER_PASSWORD);
-        progressLogger.message(dockerPassword);
-        progressLogger.message(dockerUsername);
         String sbom = new BomermanRunner(bomermanPath, archivePath, dockerUsername, dockerPassword).run();
 
         String roleArn = runnerParameters.get(ScanConstants.ROLE_ARN);
