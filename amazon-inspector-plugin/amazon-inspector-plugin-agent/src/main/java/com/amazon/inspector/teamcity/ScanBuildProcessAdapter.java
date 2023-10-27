@@ -33,6 +33,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
+import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeNonUrl;
+import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeUrl;
+
 public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     public static BuildProgressLogger publicProgressLogger;
     
@@ -103,15 +106,19 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
             }
         }
 
-        String[] splitName = component.get("name").getAsString().split(":");
+        String sanitizedSbomPath = sanitizeUrl("file://" + sbomPath);
+        String sanitizedCsvPath = sanitizeUrl("file://" + csvPath);
+        String sanitizedImageId = sanitizeNonUrl(component.get("name").getAsString());
+
+        String[] splitName = sanitizedImageId.split(":");
         String tag = null;
         if (splitName.length > 1) {
             tag = splitName[1];
         }
 
         HtmlData htmlData = HtmlData.builder()
-                .jsonFilePath(sbomPath)
-                .csvFilePath(csvPath)
+                .jsonFilePath(sanitizedSbomPath)
+                .csvFilePath(sanitizedCsvPath)
                 .imageMetadata(ImageMetadata.builder()
                         .id(splitName[0])
                         .tags(tag)
@@ -127,15 +134,16 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                         sbomData.getSbom().getComponents()))
                 .build();
 
+        publicProgressLogger.message(htmlData.toString());
         HtmlJarHandler htmlJarHandler = new HtmlJarHandler(jarPath);
         String htmlPath = htmlJarHandler.copyHtmlToDir(teamcityDirPath);
 
         String html = new Gson().toJson(htmlData);
         new HtmlGenerator(htmlPath).generateNewHtml(html);
 
-        progressLogger.message(String.format("CSV Output File: file://%s\n", csvPath.replace(" ", "%20")));
-        progressLogger.message(String.format("SBOM Output File: file://%s\n", sbomPath.replace(" ", "%20")));
-        progressLogger.message(String.format("HTML Report File: file://%s\n", htmlPath.replace(" ", "%20")));
+        progressLogger.message("CSV Output File: " + sanitizedCsvPath);
+        progressLogger.message("SBOM Output File: " + sanitizedSbomPath);
+        progressLogger.message("HTML Report File:" + sanitizeUrl("file://" + htmlPath));
         progressLogger.message("\n");
         progressLogger.message(results.toString());
         boolean doesBuildPass = !doesBuildFail(results.getCounts());
