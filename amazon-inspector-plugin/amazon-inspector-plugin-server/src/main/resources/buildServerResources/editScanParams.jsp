@@ -33,6 +33,7 @@
             </div>
         </td>
     </tr>
+    <tr>
         <td>
             <props:selectSectionProperty name="${region}" title="Region"><l:star/>
                 <props:selectSectionPropertyContent value="us-east-1" caption="us-east-1">us-east-1</props:selectSectionPropertyContent>
