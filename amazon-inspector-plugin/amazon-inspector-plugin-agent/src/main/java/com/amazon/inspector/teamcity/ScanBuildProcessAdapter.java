@@ -1,6 +1,5 @@
 package com.amazon.inspector.teamcity;
 
-import com.amazon.inspector.teamcity.bomerman.BomermanJarHandler;
 import com.amazon.inspector.teamcity.bomerman.BomermanRunner;
 import com.amazon.inspector.teamcity.csvconversion.CsvConverter;
 import com.amazon.inspector.teamcity.html.HtmlConversionUtils;
@@ -67,7 +66,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         .toURI()).getPath();
 
         String teamcityDirPath = build.getCheckoutDirectory().getAbsolutePath();
-        String bomermanPath = new BomermanJarHandler(jarPath).copyBomermanToDir(teamcityDirPath);
+        String bomermanPath = runnerParameters.get(ScanConstants.BOMERMAN_PATH);
 
         String archivePath = runnerParameters.get(ScanConstants.ARCHIVE_PATH);
         String dockerUsername = runnerParameters.get(ScanConstants.DOCKER_USERNAME);
