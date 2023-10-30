@@ -13,8 +13,18 @@
 <c:set var="countLow" value="<%=ScanConstants.COUNT_LOW%>"/>
 <c:set var="dockerUsername" value="<%=ScanConstants.DOCKER_USERNAME%>"/>
 <c:set var="dockerPassword" value="<%=ScanConstants.DOCKER_PASSWORD%>"/>
+<c:set var="bomermanPath" value="<%=ScanConstants.BOMERMAN_PATH%>"/>
 
 <l:settingsGroup title="Scan Settings">
+    <tr>
+        <th><label size="10" for="${bomermanPath}">Path to SBOM Generator Binary: <l:star/></label></th>
+        <td>
+            <div class="posRel">
+                <props:textProperty name="${bomermanPath}" size="56" maxlength="100"/>
+                <span class="error" id="error_${bomermanPath}"></span>
+            </div>
+        </td>
+    </tr>
     <tr>
         <th><label size="10" for="${archivePath}">Archive Path: <l:star/></label></th>
         <td>

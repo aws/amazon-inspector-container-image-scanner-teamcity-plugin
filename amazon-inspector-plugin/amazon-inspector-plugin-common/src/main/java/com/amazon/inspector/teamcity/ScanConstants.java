@@ -11,4 +11,5 @@ public class ScanConstants {
 	public static final String REGION = "region";
 	public static final String DOCKER_USERNAME = "dockerUsername";
 	public static final String DOCKER_PASSWORD = "dockerPassword";
+	public static final Object BOMERMAN_PATH = "bomermanPath";
 }
