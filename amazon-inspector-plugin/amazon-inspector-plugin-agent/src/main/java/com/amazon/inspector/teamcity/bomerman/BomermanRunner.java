@@ -1,11 +1,15 @@
 package com.amazon.inspector.teamcity.bomerman;
 
+import com.amazon.inspector.teamcity.exception.MalformedScanOutputException;
 import lombok.Setter;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
+
+import static com.amazon.inspector.teamcity.bomerman.BomermanUtils.processBomermanOutput;
+import static com.amazon.inspector.teamcity.bomerman.BomermanUtils.stripProperties;
 
 public class BomermanRunner {
     public String bomermanPath;
@@ -28,11 +32,11 @@ public class BomermanRunner {
         this.dockerPassword = dockerPassword;
     }
 
-    public String run() throws IOException {
+    public String run() throws IOException, MalformedScanOutputException {
         return runBomerman(bomermanPath, archivePath);
     }
 
-    private String runBomerman(String bomermanPath, String archivePath) throws IOException {
+    private String runBomerman(String bomermanPath, String archivePath) throws IOException, MalformedScanOutputException {
         String[] command = new String[] {
                 bomermanPath, "container", "--image", archivePath
         };
@@ -55,6 +59,6 @@ public class BomermanRunner {
             if (line == null) { break; }
         }
 
-        return BomermanUtils.processBomermanOutput(sb.toString());
+        return stripProperties(processBomermanOutput(sb.toString()));
     }
 }

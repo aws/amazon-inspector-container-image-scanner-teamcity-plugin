@@ -1,7 +1,7 @@
 package com.amazon.inspector.teamcity.html;
 
 import lombok.AllArgsConstructor;
-import org.apache.commons.text.StringEscapeUtils;
+import org.apache.commons.lang.StringEscapeUtils;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-
 
 @AllArgsConstructor
 public class HtmlGenerator {

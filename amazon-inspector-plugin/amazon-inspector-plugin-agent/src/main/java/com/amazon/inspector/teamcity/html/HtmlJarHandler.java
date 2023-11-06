@@ -6,11 +6,8 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-
-import static com.amazon.inspector.teamcity.ScanBuildProcessAdapter.publicProgressLogger;
 
 @AllArgsConstructor
 public class HtmlJarHandler {
@@ -31,7 +28,7 @@ public class HtmlJarHandler {
     }
 
     public File copyFile(File destFile, String fileName) throws IOException {
-        publicProgressLogger.message(String.format("Attempting to copy %s from jar", fileName));
+
         JarFile jarFile = new JarFile(jarPath);
 
         JarEntry entry = jarFile.getJarEntry(fileName);

@@ -1,13 +1,14 @@
 package com.amazon.inspector.teamcity.csvconversion;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.opencsv.CSVWriter;
+import freemarker.template.utility.StringUtil;
 import com.amazon.inspector.teamcity.models.sbom.Components.Affect;
 import com.amazon.inspector.teamcity.models.sbom.Components.Component;
 import com.amazon.inspector.teamcity.models.sbom.Components.Property;
 import com.amazon.inspector.teamcity.models.sbom.Components.Rating;
 import com.amazon.inspector.teamcity.models.sbom.Components.Vulnerability;
 import com.amazon.inspector.teamcity.models.sbom.SbomData;
-import com.intellij.openapi.util.text.StringUtil;
-import com.opencsv.CSVWriter;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -16,8 +17,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class CsvConverter {
     private SbomData sbomData;
@@ -47,6 +46,10 @@ public class CsvConverter {
     private Map<String, Component> populateComponentMap(SbomData sbomData) {
         Map<String, Component> componentMap = new HashMap<>();
 
+        if (sbomData.getSbom().getComponents() == null) {
+            return componentMap;
+        }
+
         for (Component component : sbomData.getSbom().getComponents()) {
             componentMap.put(component.getBomRef(), component);
         }
@@ -54,7 +57,7 @@ public class CsvConverter {
         return componentMap;
     }
 
-    protected List<String []> buildCsvDataLines() {
+    protected List<String[]> buildCsvDataLines() {
         List<String[]> dataLines = new ArrayList<>();
         String[] headers = new String[] {"Vulnerability ID", "Severity", "Published", "Modified", "Description",
                 "Package Installed Version", "Package Fixed Version", "Package Path", "EPSS Score", "Exploit Available",
@@ -110,7 +113,8 @@ public class CsvConverter {
                 .build();
     }
 
-    private String getUpdated(Vulnerability vulnerability) {
+    @VisibleForTesting
+    protected String getUpdated(Vulnerability vulnerability) {
         if (vulnerability == null || vulnerability.getUpdated() == null) {
             return "N/A";
         }
@@ -118,6 +122,7 @@ public class CsvConverter {
         return vulnerability.getUpdated();
     }
 
+    @VisibleForTesting
     protected String getCwesAsString(Vulnerability vulnerability) {
         List<String> cwes = new ArrayList<>();
 
@@ -132,6 +137,7 @@ public class CsvConverter {
         return String.join(", ", cwes);
     }
 
+    @VisibleForTesting
     protected String getEpssScore(Vulnerability vulnerability) {
         if (vulnerability == null || vulnerability.getRatings() == null) {
             return "N/A";
@@ -146,6 +152,7 @@ public class CsvConverter {
         return "N/A";
     }
 
+    @VisibleForTesting
     protected String getPropertyValueFromKey(Vulnerability vulnerability, String key) {
         if (vulnerability == null) {
             return "N/A";

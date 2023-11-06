@@ -11,9 +11,9 @@ import com.amazon.inspector.teamcity.models.html.components.SeverityValues;
 import com.amazon.inspector.teamcity.models.sbom.Sbom;
 import com.amazon.inspector.teamcity.models.sbom.SbomData;
 import com.amazon.inspector.teamcity.requests.SdkRequests;
-import com.amazon.inspector.teamcity.sbomparsing.Results;
 import com.amazon.inspector.teamcity.sbomparsing.SbomOutputParser;
 import com.amazon.inspector.teamcity.sbomparsing.Severity;
+import com.amazon.inspector.teamcity.sbomparsing.SeverityCounts;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -32,8 +32,15 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Map;
 
-import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeNonUrl;
-import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeUrl;
+import static com.amazon.inspector.teamcity.ScanConstants.ARCHIVE_PATH;
+import static com.amazon.inspector.teamcity.ScanConstants.BOMERMAN_PATH;
+import static com.amazon.inspector.teamcity.ScanConstants.DOCKER_PASSWORD;
+import static com.amazon.inspector.teamcity.ScanConstants.DOCKER_USERNAME;
+import static com.amazon.inspector.teamcity.ScanConstants.REGION;
+import static com.amazon.inspector.teamcity.ScanConstants.ROLE_ARN;
+import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeFilePath;
+import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeText;
+
 
 public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     public static BuildProgressLogger publicProgressLogger;
@@ -62,37 +69,15 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     }
 
     private void ScanRequestHandler(Map<String, String> runnerParameters) throws Exception {
-        String jarPath = new File(ScanBuildProcessAdapter.class.getProtectionDomain().getCodeSource().getLocation()
-        .toURI()).getPath();
-
         String teamcityDirPath = build.getCheckoutDirectory().getAbsolutePath();
-        String bomermanPath = runnerParameters.get(ScanConstants.BOMERMAN_PATH);
+        String bomermanPath = runnerParameters.get(BOMERMAN_PATH);
+        String archivePath = runnerParameters.get(ARCHIVE_PATH);
+        String dockerUsername = runnerParameters.get(DOCKER_USERNAME);
+        String dockerPassword = runnerParameters.get(DOCKER_PASSWORD);
+        String roleArn = runnerParameters.get(ROLE_ARN);
+        String region = runnerParameters.get(REGION);
 
-        String archivePath = runnerParameters.get(ScanConstants.ARCHIVE_PATH);
-        String dockerUsername = runnerParameters.get(ScanConstants.DOCKER_USERNAME);
-        String dockerPassword = runnerParameters.get(ScanConstants.DOCKER_PASSWORD);
         String sbom = new BomermanRunner(bomermanPath, archivePath, dockerUsername, dockerPassword).run();
-
-        String roleArn = runnerParameters.get(ScanConstants.ROLE_ARN);
-        String region = runnerParameters.get(ScanConstants.REGION);
-        String validatedSbom = new SdkRequests(region, roleArn).requestSbom(sbom).toString();
-
-        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
-        SbomData sbomData = SbomData.builder().sbom(gson.fromJson(validatedSbom, Sbom.class)).build();
-        String sbomPath = String.format("%s/results-%s-%s.json", teamcityDirPath, build.getProjectName(),
-                build.getBuildNumber());
-
-        writeSbomDataToFile(gson.toJson(sbomData.getSbom()), sbomPath);
-
-        SbomOutputParser parser = new SbomOutputParser(sbomData);
-        Results results = parser.parseSbom();
-
-        progressLogger.message("Converting SBOM Results to CSV.");
-        CsvConverter csvConverter = new CsvConverter(sbomData);
-
-        String csvPath = String.format("%s/results-%s-%s.csv", teamcityDirPath, build.getProjectName(),
-                build.getBuildNumber());
-        csvConverter.convert(csvPath);
 
         JsonObject component = JsonParser.parseString(sbom).getAsJsonObject().get("metadata").getAsJsonObject()
                 .get("component").getAsJsonObject();
@@ -105,9 +90,39 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
             }
         }
 
-        String sanitizedSbomPath = sanitizeUrl("file://" + sbomPath);
-        String sanitizedCsvPath = sanitizeUrl("file://" + csvPath);
-        String sanitizedImageId = sanitizeNonUrl(component.get("name").getAsString());
+        publicProgressLogger.message("Sending SBOM to Inspector for validation");
+        String responseData = new SdkRequests(region, roleArn).requestSbom(sbom);
+
+        Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+        SbomData sbomData = SbomData.builder().sbom(gson.fromJson(responseData, Sbom.class)).build();
+
+        String sbomFileName = String.format("%s-%s-sbom.json", build.getProjectName(),
+                build.getBuildNumber()).replaceAll("[ #]", "");
+        String sbomPath = String.format("%s/%s", teamcityDirPath, sbomFileName);
+
+        writeSbomDataToFile(gson.toJson(sbomData.getSbom()), sbomPath);
+
+        CsvConverter converter = new CsvConverter(sbomData);
+        String csvFileName = String.format("%s-%s-sbom.csv", build.getProjectName(),
+                build.getBuildNumber()).replaceAll("[ #]", "");
+        String csvPath = String.format("%s/%s", teamcityDirPath, csvFileName);
+
+        progressLogger.message("Converting SBOM Results to CSV.");
+        converter.convert(csvPath);
+
+        SbomOutputParser parser = new SbomOutputParser(sbomData);
+        SeverityCounts severityCounts = parser.parseSbom();
+
+        String sanitizedSbomPath = sanitizeFilePath("file://" + sbomPath);
+        String sanitizedCsvPath = sanitizeFilePath("file://" + csvPath);
+        String sanitizedImageId = null;
+        String componentName = component.get("name").getAsString();
+
+        if (componentName.endsWith(".tar")) {
+            sanitizedImageId = sanitizeFilePath("file://" + componentName);
+        } else {
+            sanitizedImageId = sanitizeText(componentName);
+        }
 
         String[] splitName = sanitizedImageId.split(":");
         String tag = null;
@@ -124,17 +139,19 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                         .sha(imageSha)
                         .build())
                 .severityValues(SeverityValues.builder()
-                        .critical(results.getCounts().get(Severity.CRITICAL))
-                        .high(results.getCounts().get(Severity.HIGH))
-                        .medium(results.getCounts().get(Severity.MEDIUM))
-                        .low(results.getCounts().get(Severity.LOW))
+                        .critical(severityCounts.getCounts().get(Severity.CRITICAL))
+                        .high(severityCounts.getCounts().get(Severity.HIGH))
+                        .medium(severityCounts.getCounts().get(Severity.MEDIUM))
+                        .low(severityCounts.getCounts().get(Severity.LOW))
                         .build())
                 .vulnerabilities(HtmlConversionUtils.convertVulnerabilities(sbomData.getSbom().getVulnerabilities(),
                         sbomData.getSbom().getComponents()))
                 .build();
 
         publicProgressLogger.message(htmlData.toString());
-        HtmlJarHandler htmlJarHandler = new HtmlJarHandler(jarPath);
+        String htmlJarPath = new File(HtmlJarHandler.class.getProtectionDomain().getCodeSource().getLocation()
+                .toURI()).getPath();
+        HtmlJarHandler htmlJarHandler = new HtmlJarHandler(htmlJarPath);
         String htmlPath = htmlJarHandler.copyHtmlToDir(teamcityDirPath);
 
         String html = new Gson().toJson(htmlData);
@@ -142,10 +159,10 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
 
         progressLogger.message("CSV Output File: " + sanitizedCsvPath);
         progressLogger.message("SBOM Output File: " + sanitizedSbomPath);
-        progressLogger.message("HTML Report File:" + sanitizeUrl("file://" + htmlPath));
+        progressLogger.message("HTML Report File:" + sanitizeFilePath("file://" + htmlPath));
         progressLogger.message("\n");
-        progressLogger.message(results.toString());
-        boolean doesBuildPass = !doesBuildFail(results.getCounts());
+        progressLogger.message(severityCounts.toString());
+        boolean doesBuildPass = !doesBuildFail(severityCounts.getCounts());
         if (doesBuildPass) {
             scanRequestSuccessHandler();
         } else {

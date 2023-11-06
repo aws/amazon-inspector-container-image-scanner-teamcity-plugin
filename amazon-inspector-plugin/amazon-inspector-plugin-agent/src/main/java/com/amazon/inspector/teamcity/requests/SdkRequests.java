@@ -1,6 +1,5 @@
 package com.amazon.inspector.teamcity.requests;
 
-import com.amazon.inspector.teamcity.ScanBuildProcessAdapter;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -25,24 +24,25 @@ public class SdkRequests {
         this.roleArn = roleArn;
     }
 
-    public Document requestSbom(String sbom) throws URISyntaxException {
-        ScanBuildProcessAdapter.publicProgressLogger.message("Sending SBOM validation request");
+    public String requestSbom(String sbom) throws URISyntaxException {
         SdkHttpClient client = ApacheHttpClient.builder().build();
         InspectorScanClient scanClient = InspectorScanClient.builder()
                 .region(Region.of(region))
                 .httpClient(client)
                 .credentialsProvider(getCredentialProvider())
-                .endpointOverride(new URI(String.format("https://beta.%s.waystar.inspector.aws.a2z.com", region)))
+                .endpointOverride(new URI(String.format("https://prod.%s.waystar.inspector.aws.a2z.com", region)))
                 .build();
 
         JsonNodeParser jsonNodeParser = JsonNodeParser.create();
         DocumentUnmarshaller unmarshaller = new DocumentUnmarshaller();
         Document document = jsonNodeParser.parse(sbom).visit(unmarshaller);
 
-        ScanSbomRequest request = ScanSbomRequest.builder().sbom(document).build();
+        ScanSbomRequest request = ScanSbomRequest.builder()
+                .sbom(document)
+                .build();
         ScanSbomResponse response = scanClient.scanSbom(request);
 
-        return response.sbom();
+        return response.sbom().toString();
     }
 
     public StsAssumeRoleCredentialsProvider getCredentialProvider() {
