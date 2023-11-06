@@ -1,12 +1,35 @@
 package com.amazon.inspector.teamcity.bomerman;
 
-import com.amazon.inspector.teamcity.ScanBuildProcessAdapter;
+import com.amazon.inspector.teamcity.exception.MalformedScanOutputException;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 public class BomermanUtils {
 
-    public static String processBomermanOutput(String sbom) {
-        ScanBuildProcessAdapter.publicProgressLogger.message("Processing bomerman file");
+    public static String processBomermanOutput(String sbom) throws MalformedScanOutputException {
         sbom.replaceAll("time=.+file=.+\"", "");
-        return sbom.substring(sbom.indexOf("{"), sbom.lastIndexOf("}") + 1);
+        int startIndex = sbom.indexOf("{");
+        int endIndex = sbom.lastIndexOf("}");
+
+        if (startIndex == -1 || endIndex == -1 || startIndex > endIndex) {
+            throw new MalformedScanOutputException("Sbom scanning output formatted incorrectly.");
+        }
+
+        return sbom.substring(startIndex, endIndex + 1);
+    }
+
+    @VisibleForTesting
+    public static String stripProperties(String sbom) {
+        JsonObject json = JsonParser.parseString(sbom).getAsJsonObject();
+        JsonArray components = json.getAsJsonObject().get("components").getAsJsonArray();
+
+        for (JsonElement component : components) {
+            component.getAsJsonObject().remove("properties");
+        }
+
+        return json.toString();
     }
 }

@@ -1,5 +1,6 @@
 package com.amazon.inspector.teamcity.sbomparsing;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.amazon.inspector.teamcity.models.sbom.Components.Rating;
 import com.amazon.inspector.teamcity.models.sbom.Components.Vulnerability;
 import com.amazon.inspector.teamcity.models.sbom.SbomData;
@@ -15,24 +16,25 @@ public class SbomOutputParser {
         this.sbom = sbomData;
     }
 
-    public Results parseSbom() {
-        Results results = new Results();
+    public SeverityCounts parseSbom() {
+        SeverityCounts severityCounts = new SeverityCounts();
         List<Vulnerability> vulnerabilities = sbom.getSbom().getVulnerabilities();
 
         if (vulnerabilities == null) {
-            return results;
+            return severityCounts;
         }
 
         for (Vulnerability vulnerability : vulnerabilities) {
             List<Rating> ratings = vulnerability.getRatings();
 
             Severity severity = getHighestRatingFromList(ratings);
-            results.increment(severity);
+            severityCounts.increment(severity);
         }
 
-        return results;
+        return severityCounts;
     }
 
+    @VisibleForTesting
     protected Severity getHighestRatingFromList(List<Rating> ratings) {
         Severity highestSeverity = null;
 
