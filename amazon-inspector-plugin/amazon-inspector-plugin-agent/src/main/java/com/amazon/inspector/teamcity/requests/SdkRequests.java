@@ -7,6 +7,7 @@ import software.amazon.awssdk.protocols.json.internal.unmarshall.document.Docume
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.inspectorscan.InspectorScanClient;
+import software.amazon.awssdk.services.inspectorscan.model.OutputFormat;
 import software.amazon.awssdk.services.inspectorscan.model.ScanSbomRequest;
 import software.amazon.awssdk.services.inspectorscan.model.ScanSbomResponse;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -39,6 +40,7 @@ public class SdkRequests {
 
         ScanSbomRequest request = ScanSbomRequest.builder()
                 .sbom(document)
+                .outputFormat(OutputFormat.CYCLONE_DX_1_5)
                 .build();
         ScanSbomResponse response = scanClient.scanSbom(request);
 
