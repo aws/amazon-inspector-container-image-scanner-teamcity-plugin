@@ -148,7 +148,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                         sbomData.getSbom().getComponents()))
                 .build();
 
-        publicProgressLogger.message(htmlData.toString());
         String htmlJarPath = new File(HtmlJarHandler.class.getProtectionDomain().getCodeSource().getLocation()
                 .toURI()).getPath();
         HtmlJarHandler htmlJarHandler = new HtmlJarHandler(htmlJarPath);
