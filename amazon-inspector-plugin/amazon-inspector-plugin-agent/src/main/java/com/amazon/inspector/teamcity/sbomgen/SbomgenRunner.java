@@ -1,6 +1,7 @@
 package com.amazon.inspector.teamcity.sbomgen;
 
 import com.amazon.inspector.teamcity.exception.SbomgenNotFoundException;
+import com.google.common.annotations.VisibleForTesting;
 import lombok.Setter;
 
 import java.io.BufferedReader;
@@ -37,6 +38,14 @@ public class SbomgenRunner {
     }
 
     private String runSbomgen(String sbomgenPath, String archivePath) throws Exception {
+        if (!isValidPath(sbomgenPath)) {
+            throw new IllegalArgumentException("Invalid sbomgen path: " + sbomgenPath);
+        }
+
+        if (!isValidPath(archivePath)) {
+            throw new IllegalArgumentException("Invalid archive path: " + archivePath);
+        }
+
         String[] command = new String[] {
                 sbomgenPath, "container", "--image", archivePath
         };
@@ -68,5 +77,11 @@ public class SbomgenRunner {
         }
 
         return stripProperties(processSbomgenOutput(sb.toString()));
+    }
+
+    @VisibleForTesting
+    protected boolean isValidPath(String path) {
+        String regex = "^[a-zA-Z0-9/._\\-:]+$";
+        return path.matches(regex);
     }
 }
