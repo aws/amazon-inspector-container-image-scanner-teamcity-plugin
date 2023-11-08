@@ -13,16 +13,15 @@
 <c:set var="countLow" value="<%=ScanConstants.COUNT_LOW%>"/>
 <c:set var="dockerUsername" value="<%=ScanConstants.DOCKER_USERNAME%>"/>
 <c:set var="dockerPassword" value="<%=ScanConstants.DOCKER_PASSWORD%>"/>
-<c:set var="bomermanPath" value="<%=ScanConstants.BOMERMAN_PATH%>"/>
+<c:set var="sbomgenPath" value="<%=ScanConstants.SBOMGEN_PATH%>"/>
 
 <l:settingsGroup title="Scan Settings">
     <tr>
-        <th><label size="10" for="${bomermanPath}">Path to inspector-sbomgen: <l:star/></label></th>
+        <th><label size="10" for="${sbomgenPath}">Path to inspector-sbomgen: <l:star/></label></th>
         <td>
             <div class="posRel">
-                <props:textProperty name="${bomermanPath}" size="56" maxlength="100" onclick="this.value=''"
-                                    value="/Users/user/Downloads/inspector-sbomgen"/>
-                <span class="error" id="error_${bomermanPath}"></span>
+                <props:textProperty name="${sbomgenPath}" size="56" maxlength="100"/>
+                <span class="error" id="error_${sbomgenPath}"></span>
             </div>
         </td>
     </tr>
@@ -30,8 +29,7 @@
         <th><label size="10" for="${archivePath}">Image Id: <l:star/></label></th>
         <td>
             <div class="posRel">
-                <props:textProperty name="${archivePath}" size="56" maxlength="100" onclick="this.value=''"
-                                    value="/Users/user/Downloads/alpine.tar or alpine:latest"/>
+                <props:textProperty name="${archivePath}" size="56" maxlength="100"/>
                 <span class="error" id="error_${archivePath}"></span>
             </div>
         </td>
@@ -49,8 +47,7 @@
         <th><label size="10" for="${roleArn}">IAM Role: <l:star/></label></th>
         <td>
             <div class="posRel">
-                <props:textProperty name="${roleArn}" size="56" maxlength="100" onclick="this.value=''"
-                                    value="arn:aws:iam::{ACCOUNT_ID}:role/{ROLE_NAME}"/>
+                <props:textProperty name="${roleArn}" size="56" maxlength="100"/>
                 <span class="error" id="error_${roleArn}"></span>
             </div>
         </td>

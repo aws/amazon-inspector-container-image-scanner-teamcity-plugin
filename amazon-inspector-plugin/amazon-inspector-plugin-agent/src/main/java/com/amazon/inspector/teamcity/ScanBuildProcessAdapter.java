@@ -1,6 +1,6 @@
 package com.amazon.inspector.teamcity;
 
-import com.amazon.inspector.teamcity.bomerman.BomermanRunner;
+import com.amazon.inspector.teamcity.sbomgen.SbomgenRunner;
 import com.amazon.inspector.teamcity.csvconversion.CsvConverter;
 import com.amazon.inspector.teamcity.html.HtmlConversionUtils;
 import com.amazon.inspector.teamcity.html.HtmlGenerator;
@@ -33,7 +33,7 @@ import java.io.PrintWriter;
 import java.util.Map;
 
 import static com.amazon.inspector.teamcity.ScanConstants.ARCHIVE_PATH;
-import static com.amazon.inspector.teamcity.ScanConstants.BOMERMAN_PATH;
+import static com.amazon.inspector.teamcity.ScanConstants.SBOMGEN_PATH;
 import static com.amazon.inspector.teamcity.ScanConstants.DOCKER_PASSWORD;
 import static com.amazon.inspector.teamcity.ScanConstants.DOCKER_USERNAME;
 import static com.amazon.inspector.teamcity.ScanConstants.REGION;
@@ -70,14 +70,14 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
 
     private void ScanRequestHandler(Map<String, String> runnerParameters) throws Exception {
         String teamcityDirPath = build.getCheckoutDirectory().getAbsolutePath();
-        String bomermanPath = runnerParameters.get(BOMERMAN_PATH);
+        String sbomgenPath = runnerParameters.get(SBOMGEN_PATH);
         String archivePath = runnerParameters.get(ARCHIVE_PATH);
         String dockerUsername = runnerParameters.get(DOCKER_USERNAME);
         String dockerPassword = runnerParameters.get(DOCKER_PASSWORD);
         String roleArn = runnerParameters.get(ROLE_ARN);
         String region = runnerParameters.get(REGION);
 
-        String sbom = new BomermanRunner(bomermanPath, archivePath, dockerUsername, dockerPassword).run();
+        String sbom = new SbomgenRunner(sbomgenPath, archivePath, dockerUsername, dockerPassword).run();
 
         JsonObject component = JsonParser.parseString(sbom).getAsJsonObject().get("metadata").getAsJsonObject()
                 .get("component").getAsJsonObject();
@@ -158,8 +158,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
 
         progressLogger.message("CSV Output File: " + sanitizedCsvPath);
         progressLogger.message("SBOM Output File: " + sanitizedSbomPath);
-        progressLogger.message("HTML Report File:" + sanitizeFilePath("file://" + htmlPath));
-        progressLogger.message("\n");
+        progressLogger.message("HTML Report File: " + sanitizeFilePath("file://" + htmlPath));
         progressLogger.message(severityCounts.toString());
         boolean doesBuildPass = !doesBuildFail(severityCounts.getCounts());
         if (doesBuildPass) {
