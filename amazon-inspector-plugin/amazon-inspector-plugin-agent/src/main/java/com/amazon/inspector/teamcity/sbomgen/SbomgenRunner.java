@@ -1,7 +1,6 @@
-package com.amazon.inspector.teamcity.bomerman;
+package com.amazon.inspector.teamcity.sbomgen;
 
-import com.amazon.inspector.teamcity.exception.BomermanNotFoundException;
-import com.amazon.inspector.teamcity.exception.MalformedScanOutputException;
+import com.amazon.inspector.teamcity.exception.SbomgenNotFoundException;
 import lombok.Setter;
 
 import java.io.BufferedReader;
@@ -9,37 +8,37 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Map;
 
-import static com.amazon.inspector.teamcity.bomerman.BomermanUtils.processBomermanOutput;
-import static com.amazon.inspector.teamcity.bomerman.BomermanUtils.stripProperties;
+import static com.amazon.inspector.teamcity.sbomgen.SbomgenUtils.processSbomgenOutput;
+import static com.amazon.inspector.teamcity.sbomgen.SbomgenUtils.stripProperties;
 
-public class BomermanRunner {
-    public String bomermanPath;
+public class SbomgenRunner {
+    public String sbomgenPath;
     public String archivePath;
     @Setter
     public static String dockerUsername;
     @Setter
     public String dockerPassword;
 
-    public BomermanRunner(String bomermanPath, String archivePath, String dockerUsername) {
-        this.bomermanPath = bomermanPath;
+    public SbomgenRunner(String sbomgenPath, String archivePath, String dockerUsername) {
+        this.sbomgenPath = sbomgenPath;
         this.archivePath = archivePath;
         this.dockerUsername = dockerUsername;
     }
 
-    public BomermanRunner(String bomermanPath, String archivePath, String dockerUsername, String dockerPassword) {
-        this.bomermanPath = bomermanPath;
+    public SbomgenRunner(String sbomgenPath, String archivePath, String dockerUsername, String dockerPassword) {
+        this.sbomgenPath = sbomgenPath;
         this.archivePath = archivePath;
         this.dockerUsername = dockerUsername;
         this.dockerPassword = dockerPassword;
     }
 
     public String run() throws Exception {
-        return runBomerman(bomermanPath, archivePath);
+        return runSbomgen(sbomgenPath, archivePath);
     }
 
-    private String runBomerman(String bomermanPath, String archivePath) throws Exception {
+    private String runSbomgen(String sbomgenPath, String archivePath) throws Exception {
         String[] command = new String[] {
-                bomermanPath, "container", "--image", archivePath
+                sbomgenPath, "container", "--image", archivePath
         };
 
         ProcessBuilder builder = new ProcessBuilder(command);
@@ -55,8 +54,8 @@ public class BomermanRunner {
         try {
             p = builder.start();
         } catch (IOException e) {
-            throw new BomermanNotFoundException(String.format("There was an issue running inspector-sbomgen, " +
-                    "is %s the correct path?", bomermanPath));
+            throw new SbomgenNotFoundException(String.format("There was an issue running inspector-sbomgen, " +
+                    "is %s the correct path?", sbomgenPath));
         }
 
         BufferedReader r = new BufferedReader(new InputStreamReader(p.getInputStream()));
@@ -68,6 +67,6 @@ public class BomermanRunner {
             if (line == null) { break; }
         }
 
-        return stripProperties(processBomermanOutput(sb.toString()));
+        return stripProperties(processSbomgenOutput(sb.toString()));
     }
 }

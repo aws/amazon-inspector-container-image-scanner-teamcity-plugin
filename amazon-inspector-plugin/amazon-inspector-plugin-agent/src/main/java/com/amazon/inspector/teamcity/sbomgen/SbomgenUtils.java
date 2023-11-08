@@ -1,4 +1,4 @@
-package com.amazon.inspector.teamcity.bomerman;
+package com.amazon.inspector.teamcity.sbomgen;
 
 import com.amazon.inspector.teamcity.exception.MalformedScanOutputException;
 import com.google.common.annotations.VisibleForTesting;
@@ -7,9 +7,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-public class BomermanUtils {
+public class SbomgenUtils {
 
-    public static String processBomermanOutput(String sbom) throws MalformedScanOutputException {
+    public static String processSbomgenOutput(String sbom) throws MalformedScanOutputException {
         sbom.replaceAll("time=.+file=.+\"", "");
         int startIndex = sbom.indexOf("{");
         int endIndex = sbom.lastIndexOf("}");
