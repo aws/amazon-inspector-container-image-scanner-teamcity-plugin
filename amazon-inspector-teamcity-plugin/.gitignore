@@ -1,0 +1,15 @@
+/annotation-generated-src/
+/annotation-generated-tst/
+/work/
+/workspace/
+/.idea/
+*/target/
+/build/
+/lib/
+.DS_Store
+.crux_dry_run_build
+*.jar
+
+
+
+

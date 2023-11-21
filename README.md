@@ -9,7 +9,7 @@ Be sure to:
 
 ## Security
 
-See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+See [CONTRIBUTING](amazon-inspector-teamcity-plugin/docs/CONTRIBUTING.md#security-issue-notifications) for more information.
 
 ## License
 
