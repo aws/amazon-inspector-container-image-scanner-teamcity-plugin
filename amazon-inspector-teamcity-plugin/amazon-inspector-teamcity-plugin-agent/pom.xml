@@ -35,6 +35,13 @@
       </exclusions>
     </dependency>
 
+
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>inspectorscan</artifactId>
+      <version>2.21.28</version>
+    </dependency>
+
     <dependency>
       <groupId>org.jetbrains.teamcity</groupId>
       <artifactId>agent-api</artifactId>
@@ -97,12 +104,6 @@
       <artifactId>junit</artifactId>
       <version>4.13.2</version>
       <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>software.amazon.awssdk</groupId>
-      <artifactId>inspectorscan</artifactId>
-      <version>2.0</version>
     </dependency>
 
     <dependency>
@@ -180,28 +181,6 @@
                 </resource>
               </resources>
             </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-install-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>install-external-non-maven-jar-MWS-Client-into-local-maven-repo</id>
-            <phase>package</phase>
-            <configuration>
-              <groupId>software.amazon.awssdk</groupId>
-              <artifactId>inspectorscan</artifactId>
-              <version>2.0</version>
-              <file>${project.basedir}/src/main/resources/AwsJavaSdk-InspectorScan-2.0.jar</file>
-              <packaging>jar</packaging>
-              <generatePom>true</generatePom>
-            </configuration>
-            <goals>
-              <goal>install-file</goal>
-            </goals>
           </execution>
         </executions>
       </plugin>
