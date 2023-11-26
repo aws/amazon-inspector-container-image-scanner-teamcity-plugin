@@ -37,7 +37,7 @@
     <tr>
         <th><label size="10" for="${region}">Region: <l:star/></label></th>
         <td>
-            <props:selectSectionProperty name="${region}">
+            <props:selectSectionProperty name="${region}" title="">
                 <props:selectSectionPropertyContent value="us-east-1" caption="us-east-1">us-east-1</props:selectSectionPropertyContent>
                 <props:selectSectionPropertyContent value="eu-west-1" caption="eu-west-1">eu-west-1</props:selectSectionPropertyContent>
                 <props:selectSectionPropertyContent value="us-west-1" caption="us-west-1">us-west-1</props:selectSectionPropertyContent>
