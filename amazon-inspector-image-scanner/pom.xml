@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.amazon.inspector.teamcity</groupId>
-  <artifactId>amazon-inspector-teamcity-plugin</artifactId>
+  <artifactId>amazon-inspector-image-scanner</artifactId>
   <version>1.0</version>
   <packaging>pom</packaging>
   <properties>
@@ -39,9 +39,9 @@
       </pluginManagement>
   </build>
   <modules>
-    <module>amazon-inspector-teamcity-plugin-agent</module>
-    <module>amazon-inspector-teamcity-plugin-common</module>
-    <module>amazon-inspector-teamcity-plugin-server</module>
+    <module>amazon-inspector-image-scanner-agent</module>
+    <module>amazon-inspector-image-scanner-common</module>
+    <module>amazon-inspector-image-scanner-server</module>
     <module>build</module>
   </modules>
 </project>

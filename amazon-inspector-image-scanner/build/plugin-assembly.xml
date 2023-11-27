@@ -19,8 +19,8 @@
         <moduleSet>
             <useAllReactorProjects>true</useAllReactorProjects>
             <includes>
-                <include>com.amazon.inspector.teamcity:amazon-inspector-plugin-server</include>
-                <include>com.amazon.inspector.teamcity:amazon-inspector-plugin-common</include>
+                <include>com.amazon.inspector.teamcity:amazon-inspector-image-scanner-server</include>
+                <include>com.amazon.inspector.teamcity:amazon-inspector-image-scanner-common</include>
             </includes>
             <binaries>
                 <outputDirectory>server</outputDirectory>

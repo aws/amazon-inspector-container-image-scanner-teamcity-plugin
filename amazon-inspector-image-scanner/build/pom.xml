@@ -2,33 +2,33 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>amazon-inspector-plugin</artifactId>
+        <artifactId>amazon-inspector-image-scanner</artifactId>
         <groupId>com.amazon.inspector.teamcity</groupId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0</version>
     </parent>
     <artifactId>build</artifactId>
     <packaging>pom</packaging>
     <properties>
         <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
-        <teamcity.amazon-inspector-plugin.plugin.version>snapshot-${maven.build.timestamp}</teamcity.amazon-inspector-plugin.plugin.version>
-        <teamcity.amazon-inspector-plugin.plugin.vendorName>Plugin vendor name</teamcity.amazon-inspector-plugin.plugin.vendorName>
-        <teamcity.amazon-inspector-plugin.plugin.vendorUrl>Plugin vendor URL</teamcity.amazon-inspector-plugin.plugin.vendorUrl>
+        <teamcity.amazon-inspector-image-scanner.plugin.version>snapshot-${maven.build.timestamp}</teamcity.amazon-inspector-image-scanner.plugin.version>
+        <teamcity.amazon-inspector-image-scanner.plugin.vendorName>Plugin vendor name</teamcity.amazon-inspector-image-scanner.plugin.vendorName>
+        <teamcity.amazon-inspector-image-scanner.plugin.vendorUrl>Plugin vendor URL</teamcity.amazon-inspector-image-scanner.plugin.vendorUrl>
     </properties>
     <dependencies>
         <dependency>
             <groupId>com.amazon.inspector.teamcity</groupId>
-            <artifactId>amazon-inspector-plugin-server</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>amazon-inspector-image-scanner-server</artifactId>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>com.amazon.inspector.teamcity</groupId>
-            <artifactId>amazon-inspector-plugin-agent</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>amazon-inspector-image-scanner-agent</artifactId>
+            <version>1.0</version>
         </dependency>
         <dependency>
             <groupId>com.amazon.inspector.teamcity</groupId>
-            <artifactId>amazon-inspector-plugin-common</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <artifactId>amazon-inspector-image-scanner-common</artifactId>
+            <version>1.0</version>
         </dependency>
     </dependencies>
     <build>
@@ -51,15 +51,15 @@
                     <replacements>
                         <replacement>
                             <token>@Version@</token>
-                            <value>${teamcity.amazon-inspector-plugin.plugin.version}</value>
+                            <value>${teamcity.amazon-inspector-image-scanner.plugin.version}</value>
                         </replacement>
                         <replacement>
                             <token>@VendorName@</token>
-                            <value>${teamcity.amazon-inspector-plugin.plugin.vendorName}</value>
+                            <value>${teamcity.amazon-inspector-image-scanner.plugin.vendorName}</value>
                         </replacement>
                         <replacement>
                             <token>@VendorURL@</token>
-                            <value>${teamcity.amazon-inspector-plugin.plugin.vendorUrl}</value>
+                            <value>${teamcity.amazon-inspector-image-scanner.plugin.vendorUrl}</value>
                         </replacement>
                     </replacements>
                 </configuration>
@@ -89,7 +89,7 @@
                             <goal>single</goal>
                         </goals>
                         <configuration>
-                            <finalName>amazon-inspector-teamcity-plugin</finalName>
+                            <finalName>amazon-inspector-image-scanner</finalName>
                             <outputDirectory>${project.parent.build.directory}</outputDirectory>
                             <appendAssemblyId>false</appendAssemblyId>
                             <descriptors>

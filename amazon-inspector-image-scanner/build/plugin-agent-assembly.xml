@@ -7,7 +7,7 @@
     </formats>
     <files>
         <file>
-            <source>../amazon-inspector-teamcity-plugin-agent/teamcity-plugin.xml</source>
+            <source>../amazon-inspector-image-scanner-agent/teamcity-plugin.xml</source>
             <outputDirectory>/</outputDirectory>
         </file>
     </files>
@@ -15,8 +15,8 @@
         <moduleSet>
             <useAllReactorProjects>true</useAllReactorProjects>
             <includes>
-                <include>com.amazon.inspector.teamcity:amazon-inspector-plugin-agent</include>
-                <include>com.amazon.inspector.teamcity:amazon-inspector-plugin-common</include>
+                <include>com.amazon.inspector.teamcity:amazon-inspector-image-scanner-agent</include>
+                <include>com.amazon.inspector.teamcity:amazon-inspector-image-scanner-common</include>
             </includes>
             <binaries>
                 <outputDirectory>lib</outputDirectory>
