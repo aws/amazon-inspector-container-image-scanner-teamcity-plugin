@@ -42,6 +42,7 @@ import static com.amazon.inspector.teamcity.ScanConstants.REGION;
 import static com.amazon.inspector.teamcity.ScanConstants.ROLE_ARN;
 import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeFilePath;
 import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeText;
+import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeUrl;
 
 
 public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
@@ -123,8 +124,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         SbomOutputParser parser = new SbomOutputParser(sbomData);
         SeverityCounts severityCounts = parser.parseSbom();
 
-        String sanitizedSbomPath = sanitizeFilePath("file://" + sbomPath);
-        String sanitizedCsvPath = sanitizeFilePath("file://" + csvPath);
         String sanitizedImageId = null;
         String componentName = component.get("name").getAsString();
 
@@ -141,10 +140,12 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         }
 
         String baseUrl = buildBaseUrl();
+        String sbomUrl = sanitizeUrl(String.format("%s/%s", baseUrl, sbomFileName));
+        String csvUrl = sanitizeUrl(String.format("%s/%s", baseUrl, csvFileName));
 
         HtmlData htmlData = HtmlData.builder()
-                .jsonFilePath(String.format("%s/%s", baseUrl, sbomFileName))
-                .csvFilePath(String.format("%s/%s", baseUrl, csvFileName))
+                .jsonFilePath(sbomUrl)
+                .csvFilePath(csvUrl)
                 .imageMetadata(ImageMetadata.builder()
                         .id(splitName[0])
                         .tags(tag)
@@ -172,8 +173,8 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         artifactsWatcher.addNewArtifactsPath(sbomPath);
         artifactsWatcher.addNewArtifactsPath(csvPath);
 
-        progressLogger.message(String.format("CSV Output File: %s/%s", baseUrl, csvFileName));
-        progressLogger.message(String.format("SBOM Output File: %s/%s", baseUrl, sbomFileName));
+        progressLogger.message("CSV Output File: " + csvUrl);
+        progressLogger.message("SBOM Output File: " + sbomUrl);
         progressLogger.message(String.format("HTML Report File: %s/index.html", baseUrl));
         progressLogger.message("Files can be downloaded from the artifacts tab.");
 
