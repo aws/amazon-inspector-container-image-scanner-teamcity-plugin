@@ -30,6 +30,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.Map;
 
 import static com.amazon.inspector.teamcity.ScanConstants.ARCHIVE_PATH;
@@ -67,6 +68,14 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         } catch (Exception e) {
             throw new RunBuildException(e);
         }
+    }
+
+    private String buildBaseUrl() {
+        String buildName = build.getSharedBuildParameters().getAllParameters().get("system.teamcity.buildType.id");
+        String buildId = runnerParameters.get("teamcity.build.id");
+        String buildUrl = build.getSharedBuildParameters().getAllParameters().get("env.BUILD_URL");
+        String serverUrl = buildUrl.split("/")[2];
+        return String.format("http://%s/repository/download/%s/%s:id", serverUrl, buildName, buildId);
     }
 
     private void ScanRequestHandler(Map<String, String> runnerParameters) throws Exception {
@@ -131,9 +140,11 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
             tag = splitName[1];
         }
 
+        String baseUrl = buildBaseUrl();
+
         HtmlData htmlData = HtmlData.builder()
-                .jsonFilePath(sanitizedSbomPath)
-                .csvFilePath(sanitizedCsvPath)
+                .jsonFilePath(String.format("%s/%s", baseUrl, sbomFileName))
+                .csvFilePath(String.format("%s/%s", baseUrl, csvFileName))
                 .imageMetadata(ImageMetadata.builder()
                         .id(splitName[0])
                         .tags(tag)
@@ -153,7 +164,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                 .toURI()).getPath();
         HtmlJarHandler htmlJarHandler = new HtmlJarHandler(htmlJarPath);
         String htmlPath = htmlJarHandler.copyHtmlToDir(teamcityDirPath);
-        String sanitizedHtmlPath = sanitizeFilePath("file://" + htmlPath);
         String html = new Gson().toJson(htmlData);
         new HtmlGenerator(htmlPath).generateNewHtml(html);
 
@@ -162,9 +172,9 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         artifactsWatcher.addNewArtifactsPath(sbomPath);
         artifactsWatcher.addNewArtifactsPath(csvPath);
 
-        progressLogger.message("CSV Output File: " + sanitizedCsvPath);
-        progressLogger.message("SBOM Output File: " + sanitizedSbomPath);
-        progressLogger.message("HTML Report File: " + sanitizedHtmlPath);
+        progressLogger.message(String.format("CSV Output File: %s/%s", baseUrl, csvFileName));
+        progressLogger.message(String.format("SBOM Output File: %s/%s", baseUrl, sbomFileName));
+        progressLogger.message(String.format("HTML Report File: %s/index.html", baseUrl));
         progressLogger.message("Files can be downloaded from the artifacts tab.");
 
         progressLogger.message(severityCounts.toString());
