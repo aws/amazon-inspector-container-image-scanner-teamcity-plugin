@@ -173,10 +173,14 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         artifactsWatcher.addNewArtifactsPath(sbomPath);
         artifactsWatcher.addNewArtifactsPath(csvPath);
 
+        String serverUrl = String.format("http://%s",
+                build.getSharedBuildParameters().getAllParameters().get("env.BUILD_URL").split("/")[2]);
+
+        progressLogger.message("Prefixing file paths with the Server URL from settings, currently: " + serverUrl);
         progressLogger.message("CSV Output File: " + csvUrl);
         progressLogger.message("SBOM Output File: " + sbomUrl);
         progressLogger.message(String.format("HTML Report File: %s/index.html", baseUrl));
-        progressLogger.message("Files can be downloaded from the artifacts tab.");
+        progressLogger.message("Files can also be downloaded from the artifacts tab.");
 
         progressLogger.message(severityCounts.toString());
         boolean doesBuildPass = !doesBuildFail(severityCounts.getCounts());
