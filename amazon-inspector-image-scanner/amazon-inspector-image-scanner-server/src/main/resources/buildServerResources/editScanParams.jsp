@@ -15,6 +15,19 @@
 <c:set var="dockerPassword" value="<%=ScanConstants.DOCKER_PASSWORD%>"/>
 <c:set var="sbomgenPath" value="<%=ScanConstants.SBOMGEN_PATH%>"/>
 
+<script type="text/javascript">
+    function test() {
+        let checked = document.getElementById("isThresholdEnabled").checked;
+        let thresholds = document.getElementById("thresholds");
+
+        if (checked) {
+            thresholds.setAttribute('style', 'display: block !important');
+        } else {
+            thresholds.setAttribute('style', 'display: none !important');
+        }
+    }
+</script>
+
 <l:settingsGroup title="Scan Settings">
     <tr>
         <th><label size="10" for="${sbomgenPath}">Path to inspector-sbomgen: <l:star/></label></th>
@@ -98,10 +111,20 @@
 </l:settingsGroup>
 <l:settingsGroup title="Vulnerability Thresholds">
     <tr>
+        <th></th>
+        <td>
+            <props:checkboxProperty id="isThresholdEnabled" name="isThresholdEnabled"/>
+            <label for="isThresholdEnabled">Enable Vulnerability Thresholds</label>
+            <span class="smallNote">
+              Specifies whether scanned vulnerabilities exceeding a value will cause a build failure.
+            </span>
+        </td>
+    </tr>
+    <tr>
         <th><label size="10" for="${countCritical}">Count Critical: <l:star/></label></th>
         <td>
-            <div class="posRel">
-                <props:textProperty name="${countCritical}" size="10" maxlength="100"/>
+            <div>
+                <props:textProperty name="${countCritical}" size="10" maxlength="100" />
                 <span class="error" id="error_${countCritical}"></span>
             </div>
         </td>
@@ -109,7 +132,7 @@
     <tr>
         <th><label size="10" for="${countHigh}">Count High: <l:star/></label></th>
         <td>
-            <div class="posRel">
+            <div>
                 <props:textProperty name="${countHigh}" size="10" maxlength="100"/>
                 <span class="error" id="error_${countHigh}"></span>
             </div>
@@ -118,7 +141,7 @@
     <tr>
         <th><label size="10" for="${countMedium}">Count Medium: <l:star/></label></th>
         <td>
-            <div class="posRel">
+            <div>
                 <props:textProperty name="${countMedium}" size="10" maxlength="100"/>
                 <span class="error" id="error_${countMedium}"></span>
             </div>

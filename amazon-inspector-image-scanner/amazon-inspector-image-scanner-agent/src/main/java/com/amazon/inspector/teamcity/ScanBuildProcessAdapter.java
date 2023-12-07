@@ -35,6 +35,7 @@ import java.util.Map;
 
 import static com.amazon.inspector.teamcity.ScanConstants.ARCHIVE_PATH;
 import static com.amazon.inspector.teamcity.ScanConstants.HTML_PATH;
+import static com.amazon.inspector.teamcity.ScanConstants.IS_THRESHOLD_ENABLED;
 import static com.amazon.inspector.teamcity.ScanConstants.SBOMGEN_PATH;
 import static com.amazon.inspector.teamcity.ScanConstants.DOCKER_PASSWORD;
 import static com.amazon.inspector.teamcity.ScanConstants.DOCKER_USERNAME;
@@ -87,6 +88,8 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         String dockerPassword = runnerParameters.get(DOCKER_PASSWORD);
         String roleArn = runnerParameters.get(ROLE_ARN);
         String region = runnerParameters.get(REGION);
+        boolean isThresholdEnabled = Boolean.parseBoolean(runnerParameters.get(IS_THRESHOLD_ENABLED));
+        publicProgressLogger.message("Threshold: " + isThresholdEnabled);
 
         String sbom = new SbomgenRunner(sbomgenPath, archivePath, dockerUsername, dockerPassword).run();
 
@@ -183,8 +186,14 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         progressLogger.message("Files can also be downloaded from the artifacts tab.");
 
         progressLogger.message(severityCounts.toString());
+        if (!isThresholdEnabled) {
+            progressLogger.message("Ignoring results due to thresholds being disabled.");
+        }
         boolean doesBuildPass = !doesBuildFail(severityCounts.getCounts());
-        if (doesBuildPass) {
+
+        if (!isThresholdEnabled) {
+            scanRequestSuccessHandler();
+        } else if (isThresholdEnabled && doesBuildPass) {
             scanRequestSuccessHandler();
         } else {
             scanRequestFailureHandler();
