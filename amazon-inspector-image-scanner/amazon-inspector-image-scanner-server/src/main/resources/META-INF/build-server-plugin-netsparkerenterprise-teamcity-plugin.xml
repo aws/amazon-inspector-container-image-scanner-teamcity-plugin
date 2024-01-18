@@ -2,5 +2,4 @@
 <!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
 <beans default-autowire="constructor">
     <bean id="imageScannerRunType" class="com.amazon.inspector.teamcity.ScanRunType"/>
-    <bean id="echoReportTab" class="com.amazon.inspector.web.EchoReport"/>
 </beans>
