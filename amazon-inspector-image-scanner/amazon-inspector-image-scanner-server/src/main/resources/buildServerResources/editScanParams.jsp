@@ -14,23 +14,30 @@
 <c:set var="dockerUsername" value="<%=ScanConstants.DOCKER_USERNAME%>"/>
 <c:set var="dockerPassword" value="<%=ScanConstants.DOCKER_PASSWORD%>"/>
 <c:set var="sbomgenPath" value="<%=ScanConstants.SBOMGEN_PATH%>"/>
+<c:set var="sbomgenSelection" value="<%=ScanConstants.SBOMGEN_SELECTION%>"/>
+<c:set var="awsAccessKeyId" value="<%=ScanConstants.AWS_ACCESS_KEY_ID%>"/>
+<c:set var="awsSecretKey" value="<%=ScanConstants.AWS_SECRET_KEY%>"/>
 
-<script type="text/javascript">
-    function test() {
-        let checked = document.getElementById("isThresholdEnabled").checked;
-        let thresholds = document.getElementById("thresholds");
-
-        if (checked) {
-            thresholds.setAttribute('style', 'display: block !important');
-        } else {
-            thresholds.setAttribute('style', 'display: none !important');
-        }
-    }
-</script>
-
-<l:settingsGroup title="Scan Settings">
+<l:settingsGroup title="Inspector-sbomgen Installation Method">
     <tr>
-        <th><label size="10" for="${sbomgenPath}">Path to inspector-sbomgen: <l:star/></label></th>
+        <th>
+            <props:radioButtonProperty name="${sbomgenSelection}" value="linuxAmd64"/>
+            <label size="10" for="${sbomgenSelection}">Linux, AMD64</label>
+        </th>
+        <td></td>
+    </tr>
+    <tr>
+        <th>
+            <props:radioButtonProperty name="${sbomgenSelection}" value="linuxArm64"/>
+            <label size="10" for="${sbomgenSelection}">Linux, ARM64</label>
+        </th>
+        <td></td>
+    </tr>
+    <tr>
+        <th>
+            <props:radioButtonProperty name="${sbomgenSelection}" value="manual"/>
+            <label size="10" for="${sbomgenSelection}">Manual</label>
+        </th>
         <td>
             <div class="posRel">
                 <props:textProperty name="${sbomgenPath}" size="56" maxlength="100"/>
@@ -38,6 +45,9 @@
             </div>
         </td>
     </tr>
+</l:settingsGroup>
+
+<l:settingsGroup title="Scan Settings">
     <tr>
         <th><label size="10" for="${archivePath}">Image Id: <l:star/></label></th>
         <td>
@@ -48,9 +58,8 @@
         </td>
     </tr>
     <tr>
-        <th><label size="10" for="${region}">Region: <l:star/></label></th>
         <td>
-            <props:selectSectionProperty name="${region}" title="">
+            <props:selectSectionProperty name="${region}" title="Region: ">
                 <props:selectSectionPropertyContent value="us-east-1" caption="us-east-1">us-east-1</props:selectSectionPropertyContent>
                 <props:selectSectionPropertyContent value="eu-west-1" caption="eu-west-1">eu-west-1</props:selectSectionPropertyContent>
                 <props:selectSectionPropertyContent value="us-west-1" caption="us-west-1">us-west-1</props:selectSectionPropertyContent>
@@ -105,6 +114,26 @@
             <div class="posRel">
                 <props:passwordProperty name="${dockerPassword}" size="56" maxlength="100"/>
                 <span class="error" id="error_${dockerPassword}"></span>
+            </div>
+        </td>
+    </tr>
+</l:settingsGroup>
+<l:settingsGroup title="AWS Authentication - Optional, can be used instead of pulling credentials from the system">
+    <tr>
+        <th><label size="10" for="${awsAccessKeyId}">AWS Access Key ID: </label></th>
+        <td>
+            <div class="posRel">
+                <props:textProperty name="${awsAccessKeyId}" size="56" maxlength="100"/>
+                <span class="error" id="error_${awsAccessKeyId}"></span>
+            </div>
+        </td>
+    </tr>
+    <tr>
+        <th><label size="10" for="${awsSecretKey}">AWS Secret Key: </label></th>
+        <td>
+            <div class="posRel">
+                <props:passwordProperty name="${awsSecretKey}" size="56" maxlength="100"/>
+                <span class="error" id="error_${awsSecretKey}"></span>
             </div>
         </td>
     </tr>

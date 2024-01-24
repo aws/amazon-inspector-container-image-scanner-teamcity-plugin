@@ -1,5 +1,7 @@
 package com.amazon.inspector.teamcity;
 
+import com.amazon.inspector.teamcity.requests.AmazonWebServicesCredentials;
+import com.amazon.inspector.teamcity.sbomgen.SbomgenDownloader;
 import com.amazon.inspector.teamcity.sbomgen.SbomgenRunner;
 import com.amazon.inspector.teamcity.csvconversion.CsvConverter;
 import com.amazon.inspector.teamcity.html.HtmlConversionUtils;
@@ -34,6 +36,8 @@ import java.util.Arrays;
 import java.util.Map;
 
 import static com.amazon.inspector.teamcity.ScanConstants.ARCHIVE_PATH;
+import static com.amazon.inspector.teamcity.ScanConstants.AWS_ACCESS_KEY_ID;
+import static com.amazon.inspector.teamcity.ScanConstants.AWS_SECRET_KEY;
 import static com.amazon.inspector.teamcity.ScanConstants.HTML_PATH;
 import static com.amazon.inspector.teamcity.ScanConstants.IS_THRESHOLD_ENABLED;
 import static com.amazon.inspector.teamcity.ScanConstants.SBOMGEN_PATH;
@@ -41,6 +45,7 @@ import static com.amazon.inspector.teamcity.ScanConstants.DOCKER_PASSWORD;
 import static com.amazon.inspector.teamcity.ScanConstants.DOCKER_USERNAME;
 import static com.amazon.inspector.teamcity.ScanConstants.REGION;
 import static com.amazon.inspector.teamcity.ScanConstants.ROLE_ARN;
+import static com.amazon.inspector.teamcity.ScanConstants.SBOMGEN_SELECTION;
 import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeFilePath;
 import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeText;
 import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeUrl;
@@ -83,15 +88,27 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     private void ScanRequestHandler(Map<String, String> runnerParameters) throws Exception {
         String teamcityDirPath = build.getCheckoutDirectory().getAbsolutePath();
         String sbomgenPath = runnerParameters.get(SBOMGEN_PATH);
+        String sbomgenSource = runnerParameters.get(SBOMGEN_SELECTION);
         String archivePath = runnerParameters.get(ARCHIVE_PATH);
         String dockerUsername = runnerParameters.get(DOCKER_USERNAME);
         String dockerPassword = runnerParameters.get(DOCKER_PASSWORD);
         String roleArn = runnerParameters.get(ROLE_ARN);
         String region = runnerParameters.get(REGION);
+        String awsAccessKeyId = runnerParameters.get(AWS_ACCESS_KEY_ID);
+        String awsSecretKey = runnerParameters.get(AWS_SECRET_KEY);
+
         boolean isThresholdEnabled = Boolean.parseBoolean(runnerParameters.get(IS_THRESHOLD_ENABLED));
         publicProgressLogger.message("Threshold: " + isThresholdEnabled);
 
-        String sbom = new SbomgenRunner(sbomgenPath, archivePath, dockerUsername, dockerPassword).run();
+        String activeSbomgenPath = sbomgenPath;
+        if (!sbomgenSource.equals("manual")) {
+            publicProgressLogger.message("Automatic SBOMGen Sourcing selected, downloading now...");
+            activeSbomgenPath = SbomgenDownloader.getBinary(sbomgenSource);
+        } else {
+            publicProgressLogger.message("Using manually provided path to inspector-sbomgen.");
+        }
+
+        String sbom = new SbomgenRunner(activeSbomgenPath, archivePath, dockerUsername, dockerPassword).run();
 
         JsonObject component = JsonParser.parseString(sbom).getAsJsonObject().get("metadata").getAsJsonObject()
                 .get("component").getAsJsonObject();
@@ -105,7 +122,17 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         }
 
         publicProgressLogger.message("Sending SBOM to Inspector for validation");
-        String responseData = new SdkRequests(region, roleArn).requestSbom(sbom);
+
+        AmazonWebServicesCredentials awsCredentials = null;
+
+        if ((awsAccessKeyId != null && !awsAccessKeyId.isEmpty()) && (awsSecretKey != null && !awsSecretKey.isEmpty())) {
+            awsCredentials = AmazonWebServicesCredentials.builder()
+                    .AWSAccessKeyId(awsAccessKeyId)
+                    .AWSSecretKey(awsSecretKey)
+                    .build();
+        }
+
+        String responseData = new SdkRequests(region, awsCredentials, roleArn).requestSbom(sbom);
 
         Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         SbomData sbomData = SbomData.builder().sbom(gson.fromJson(responseData, Sbom.class)).build();
