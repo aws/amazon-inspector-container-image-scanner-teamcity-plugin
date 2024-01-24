@@ -19,32 +19,36 @@
 <c:set var="awsSecretKey" value="<%=ScanConstants.AWS_SECRET_KEY%>"/>
 
 <l:settingsGroup title="Inspector-sbomgen Installation Method">
-    <tr>
-        <th>
-            <props:radioButtonProperty name="${sbomgenSelection}" value="linuxAmd64"/>
-            <label size="10" for="${sbomgenSelection}">Linux, AMD64</label>
-        </th>
-        <td></td>
-    </tr>
-    <tr>
-        <th>
-            <props:radioButtonProperty name="${sbomgenSelection}" value="linuxArm64"/>
-            <label size="10" for="${sbomgenSelection}">Linux, ARM64</label>
-        </th>
-        <td></td>
-    </tr>
-    <tr>
-        <th>
-            <props:radioButtonProperty name="${sbomgenSelection}" value="manual"/>
-            <label size="10" for="${sbomgenSelection}">Manual</label>
-        </th>
-        <td>
-            <div class="posRel">
-                <props:textProperty name="${sbomgenPath}" size="56" maxlength="100"/>
-                <span class="error" id="error_${sbomgenPath}"></span>
-            </div>
-        </td>
-    </tr>
+    <l:settingsGroup title="Automatic - Select OS and CPU arch">
+        <tr>
+            <th>
+                <props:radioButtonProperty name="${sbomgenSelection}" value="linuxAmd64"/>
+                <label size="10" for="${sbomgenSelection}">Linux, AMD64</label>
+            </th>
+            <td></td>
+        </tr>
+        <tr>
+            <th>
+                <props:radioButtonProperty name="${sbomgenSelection}" value="linuxArm64"/>
+                <label size="10" for="${sbomgenSelection}">Linux, ARM64</label>
+            </th>
+            <td></td>
+        </tr>
+    </l:settingsGroup>
+    <l:settingsGroup title="Manual">
+        <tr>
+            <th>
+                <props:radioButtonProperty name="${sbomgenSelection}" value="manual"/>
+                <label size="10" for="${sbomgenSelection}">Manual</label>
+            </th>
+            <td>
+                <div class="posRel">
+                    <props:textProperty name="${sbomgenPath}" size="56" maxlength="100"/>
+                    <span class="error" id="error_${sbomgenPath}"></span>
+                </div>
+            </td>
+        </tr>
+    </l:settingsGroup>
 </l:settingsGroup>
 
 <l:settingsGroup title="Scan Settings">
@@ -98,7 +102,7 @@
         </td>
     </tr>
 </l:settingsGroup>
-<l:settingsGroup title="Docker Authentication - Only required if image being scanned is within a private repository">
+<l:settingsGroup title="Docker Authentication - Optional, required if image being scanned is within a private repository">
     <tr>
         <th><label size="10" for="${dockerUsername}">Docker Username: </label></th>
         <td>
