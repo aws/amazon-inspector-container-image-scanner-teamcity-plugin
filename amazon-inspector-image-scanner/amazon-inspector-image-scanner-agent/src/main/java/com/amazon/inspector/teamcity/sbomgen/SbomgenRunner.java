@@ -7,8 +7,10 @@ import lombok.Setter;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.Map;
 
+import static com.amazon.inspector.teamcity.ScanBuildProcessAdapter.publicProgressLogger;
 import static com.amazon.inspector.teamcity.sbomgen.SbomgenUtils.processSbomgenOutput;
 import static com.amazon.inspector.teamcity.sbomgen.SbomgenUtils.stripProperties;
 
@@ -46,12 +48,17 @@ public class SbomgenRunner {
             throw new IllegalArgumentException("Invalid archive path: " + archivePath);
         }
 
+        publicProgressLogger.message("Making downloaded SBOMGen executable...");
+        new ProcessBuilder(new String[]{"chmod", "+x", sbomgenPath}).start();
+
         String[] command = new String[] {
                 sbomgenPath, "container", "--image", archivePath
         };
 
+        publicProgressLogger.message(Arrays.toString(command));
         ProcessBuilder builder = new ProcessBuilder(command);
         Map<String, String> environment = builder.environment();
+
         if (dockerPassword != null && !dockerPassword.isEmpty()) {
             environment.put("INSPECTOR_SBOMGEN_USERNAME", dockerUsername);
             environment.put("INSPECTOR_SBOMGEN_PASSWORD", dockerPassword);
