@@ -6,6 +6,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class SbomgenRunnerTest {
+
     @Test
     public void testIsValidPath() {
         SbomgenRunner runner = new SbomgenRunner(null, null, null, null);
