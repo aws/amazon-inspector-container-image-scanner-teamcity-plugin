@@ -154,7 +154,7 @@ public class CsvConverter {
 
     @VisibleForTesting
     protected String getPropertyValueFromKey(Vulnerability vulnerability, String key) {
-        if (vulnerability == null) {
+        if (vulnerability == null || vulnerability.getProperties() == null) {
             return "N/A";
         }
 
