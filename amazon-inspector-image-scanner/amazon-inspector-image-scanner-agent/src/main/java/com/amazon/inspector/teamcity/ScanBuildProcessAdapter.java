@@ -37,6 +37,7 @@ import java.util.Map;
 
 import static com.amazon.inspector.teamcity.ScanConstants.ARCHIVE_PATH;
 import static com.amazon.inspector.teamcity.ScanConstants.AWS_ACCESS_KEY_ID;
+import static com.amazon.inspector.teamcity.ScanConstants.AWS_PROFILE_NAME;
 import static com.amazon.inspector.teamcity.ScanConstants.AWS_SECRET_KEY;
 import static com.amazon.inspector.teamcity.ScanConstants.HTML_PATH;
 import static com.amazon.inspector.teamcity.ScanConstants.IS_THRESHOLD_ENABLED;
@@ -96,6 +97,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         String region = runnerParameters.get(REGION);
         String awsAccessKeyId = runnerParameters.get(AWS_ACCESS_KEY_ID);
         String awsSecretKey = runnerParameters.get(AWS_SECRET_KEY);
+        String awsProfileName = runnerParameters.get(AWS_PROFILE_NAME);
 
         boolean isThresholdEnabled = Boolean.parseBoolean(runnerParameters.get(IS_THRESHOLD_ENABLED));
         publicProgressLogger.message("Threshold: " + isThresholdEnabled);
@@ -132,7 +134,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                     .build();
         }
 
-        String responseData = new SdkRequests(region, awsCredentials, roleArn).requestSbom(sbom);
+        String responseData = new SdkRequests(region, awsCredentials, awsProfileName, roleArn).requestSbom(sbom);
 
         Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
         SbomData sbomData = SbomData.builder().sbom(gson.fromJson(responseData, Sbom.class)).build();

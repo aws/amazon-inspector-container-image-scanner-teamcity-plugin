@@ -17,6 +17,7 @@
 <c:set var="sbomgenSelection" value="<%=ScanConstants.SBOMGEN_SELECTION%>"/>
 <c:set var="awsAccessKeyId" value="<%=ScanConstants.AWS_ACCESS_KEY_ID%>"/>
 <c:set var="awsSecretKey" value="<%=ScanConstants.AWS_SECRET_KEY%>"/>
+<c:set var="awsProfileName" value="<%=ScanConstants.AWS_PROFILE_NAME%>"/>
 
 <l:settingsGroup title="Inspector-sbomgen Installation Method">
     <l:settingsGroup title="Automatic - Select OS and CPU arch">
@@ -138,6 +139,17 @@
             <div class="posRel">
                 <props:passwordProperty name="${awsSecretKey}" size="56" maxlength="100"/>
                 <span class="error" id="error_${awsSecretKey}"></span>
+            </div>
+        </td>
+    </tr>
+</l:settingsGroup>
+<l:settingsGroup title="AWS Profile Name - Optional, used if explicit credentials aren't set">
+    <tr>
+        <th><label size="10" for="${awsProfileName}">AWS Profile Name: </label></th>
+        <td>
+            <div class="posRel">
+                <props:textProperty name="${awsProfileName}" size="56" maxlength="100" value="default"/>
+                <span class="error" id="error_${awsProfileName}"></span>
             </div>
         </td>
     </tr>

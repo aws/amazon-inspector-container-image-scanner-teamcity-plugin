@@ -2,6 +2,7 @@ package com.amazon.inspector.teamcity.requests;
 
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -25,9 +26,12 @@ public class SdkRequests {
     private final String region;
     private final AmazonWebServicesCredentials awsCredential;
     private final String roleArn;
-    public SdkRequests(String region, AmazonWebServicesCredentials awsCredential, String roleArn) {
+    private final String awsProfileName;
+
+    public SdkRequests(String region, AmazonWebServicesCredentials awsCredential, String awsProfileName, String roleArn) {
         this.region = region;
         this.awsCredential = awsCredential;
+        this.awsProfileName = awsProfileName;
         this.roleArn = roleArn;
     }
 
@@ -53,9 +57,13 @@ public class SdkRequests {
     }
 
     private AwsCredentialsProvider getCredentialProvider() {
+
+
         if (awsCredential == null) {
-            publicProgressLogger.message("AWS Credential not provided, authenticating using default credential provider chain.");
-            StsClient stsClient = StsClient.builder().region(Region.of(region)).build();
+            ProfileCredentialsProvider provider = ProfileCredentialsProvider.builder().profileName(awsProfileName).build();
+            publicProgressLogger.message("AWS Credential not provided, authenticating using default credential " +
+                    "provider chain and profile name " + awsProfileName);
+            StsClient stsClient = StsClient.builder().credentialsProvider(provider).region(Region.of(region)).build();
             return getStsCredentialProvider(stsClient);
         }
 
@@ -83,7 +91,4 @@ public class SdkRequests {
                 .roleArn(roleArn)
                 .roleSessionName("inspectorscan").build()).build();
     }
-
-
 }
-

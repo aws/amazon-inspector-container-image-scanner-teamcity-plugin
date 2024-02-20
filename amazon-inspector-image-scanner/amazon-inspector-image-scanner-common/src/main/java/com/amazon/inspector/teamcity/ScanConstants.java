@@ -3,6 +3,7 @@ package com.amazon.inspector.teamcity;
 public class ScanConstants {
 	public static final String SCAN_RUN_TYPE = "amazon-inspector-build-runner";
 	public static final String ARCHIVE_PATH = "archivePath";
+	public static final String AWS_PROFILE_NAME = "awsProfileName";
 	public static final String AWS_ACCESS_KEY_ID = "awsAccessKeyId";
 	public static final String AWS_SECRET_KEY = "awsSecretKey";
 	public static final String ROLE_ARN = "roleArn";
