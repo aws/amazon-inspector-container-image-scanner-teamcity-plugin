@@ -151,7 +151,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         String csvPath = String.format("%s/%s", teamcityDirPath, csvFileName);
 
         progressLogger.message("Converting SBOM Results to CSV.");
-        converter.convert(csvPath);
 
         SbomOutputParser parser = new SbomOutputParser(sbomData);
         SeverityCounts severityCounts = parser.parseSbom();
@@ -170,6 +169,8 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         if (splitName.length > 1) {
             tag = splitName[1];
         }
+
+        converter.convert(csvPath, sanitizedImageId, imageSha, runnerParameters.get("teamcity.build.id"), severityCounts);
 
         String baseUrl = buildBaseUrl();
         String sbomUrl = sanitizeUrl(String.format("%s/%s", baseUrl, sbomFileName));

@@ -93,15 +93,6 @@
             </props:selectSectionProperty>
         </td>
     </tr>
-    <tr>
-        <th><label size="10" for="${roleArn}">IAM Role: <l:star/></label></th>
-        <td>
-            <div class="posRel">
-                <props:textProperty name="${roleArn}" size="56" maxlength="100"/>
-                <span class="error" id="error_${roleArn}"></span>
-            </div>
-        </td>
-    </tr>
 </l:settingsGroup>
 <l:settingsGroup title="Docker Authentication - Optional, required if image being scanned is within a private repository">
     <tr>
@@ -123,9 +114,9 @@
         </td>
     </tr>
 </l:settingsGroup>
-<l:settingsGroup title="AWS Authentication - Optional, can be used instead of pulling credentials from the system">
+<l:settingsGroup title="AWS Authentication - At least one option is required">
     <tr>
-        <th><label size="10" for="${awsAccessKeyId}">AWS Access Key ID: </label></th>
+        <th><label size="10" for="${awsAccessKeyId}">Credentials, AWS Access Key ID: </label></th>
         <td>
             <div class="posRel">
                 <props:textProperty name="${awsAccessKeyId}" size="56" maxlength="100"/>
@@ -134,7 +125,7 @@
         </td>
     </tr>
     <tr>
-        <th><label size="10" for="${awsSecretKey}">AWS Secret Key: </label></th>
+        <th><label size="10" for="${awsSecretKey}">Credentials, AWS Secret Key: </label></th>
         <td>
             <div class="posRel">
                 <props:passwordProperty name="${awsSecretKey}" size="56" maxlength="100"/>
@@ -142,8 +133,15 @@
             </div>
         </td>
     </tr>
-</l:settingsGroup>
-<l:settingsGroup title="AWS Profile Name - Optional, used if explicit credentials aren't set">
+    <tr>
+        <th><label size="10" for="${roleArn}">IAM Role: <l:star/></label></th>
+        <td>
+            <div class="posRel">
+                <props:textProperty name="${roleArn}" size="56" maxlength="100"/>
+                <span class="error" id="error_${roleArn}"></span>
+            </div>
+        </td>
+    </tr>
     <tr>
         <th><label size="10" for="${awsProfileName}">AWS Profile Name: </label></th>
         <td>

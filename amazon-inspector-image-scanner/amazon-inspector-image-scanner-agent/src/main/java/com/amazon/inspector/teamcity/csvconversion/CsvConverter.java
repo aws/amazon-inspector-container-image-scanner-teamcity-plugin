@@ -1,5 +1,7 @@
 package com.amazon.inspector.teamcity.csvconversion;
 
+import com.amazon.inspector.teamcity.sbomparsing.Severity;
+import com.amazon.inspector.teamcity.sbomparsing.SeverityCounts;
 import com.google.common.annotations.VisibleForTesting;
 import com.opencsv.CSVWriter;
 import freemarker.template.utility.StringUtil;
@@ -9,10 +11,12 @@ import com.amazon.inspector.teamcity.models.sbom.Components.Property;
 import com.amazon.inspector.teamcity.models.sbom.Components.Rating;
 import com.amazon.inspector.teamcity.models.sbom.Components.Vulnerability;
 import com.amazon.inspector.teamcity.models.sbom.SbomData;
+import org.apache.commons.lang.StringUtils;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,12 +31,18 @@ public class CsvConverter {
         this.componentMap = populateComponentMap(sbomData);
     }
 
-    public void convert(String filePath) {
-        List<String[]> dataLineArray = buildCsvDataLines();
+    public void convert(String filePath, String imageName, String imageSha, String buildId, SeverityCounts counts) {
+        Map<Severity, Integer> countMap = counts.getCounts();
+        List<String[]> dataLineArray = new ArrayList<>();
+        dataLineArray.add(new String[]{"#image_name:" + imageName, "image_sha:" + imageSha, "build_id:" + buildId});
+        dataLineArray.add(new String[]{"#low_vulnerabilities:" + countMap.get(Severity.LOW), "medium_vulnerabilities:" + countMap.get(Severity.MEDIUM),
+                "high_vulnerabilities:" + countMap.get(Severity.HIGH), "critical_vulnerabilities:" + countMap.get(Severity.CRITICAL)});
+        dataLineArray.addAll(buildCsvDataLines());
+
         File file = new File(filePath);
 
         try {
-            FileWriter outputfile = new FileWriter(file);
+            FileWriter outputfile = new FileWriter(file, Charset.forName("UTF-8"));
             CSVWriter writer = new CSVWriter(outputfile);
 
             writer.writeAll(dataLineArray);
@@ -46,7 +56,7 @@ public class CsvConverter {
     private Map<String, Component> populateComponentMap(SbomData sbomData) {
         Map<String, Component> componentMap = new HashMap<>();
 
-        if (sbomData.getSbom().getComponents() == null) {
+        if (sbomData == null || sbomData.getSbom() == null || sbomData.getSbom().getComponents() == null) {
             return componentMap;
         }
 
@@ -75,7 +85,7 @@ public class CsvConverter {
                 CsvData csvData = buildCsvData(vulnerability, componentMap.get(componentRef.getRef()));
 
                 String[] dataLine = new String[] {csvData.getVulnerabilityId(),
-                        StringUtil.capitalize(csvData.getSeverity()), csvData.getPublished(), csvData.getModified(),
+                        StringUtils.capitalize(csvData.getSeverity()), csvData.getPublished(), csvData.getModified(),
                         csvData.getDescription(), csvData.getPackageInstalledVersion(),
                         csvData.getPackageFixedVersion(), csvData.getPackagePath(), csvData.getEpssScore(),
                         csvData.getExploitAvailable(), csvData.getExploitLastSeen(), csvData.getCwes()};
@@ -153,7 +163,7 @@ public class CsvConverter {
     }
 
     @VisibleForTesting
-    protected String getPropertyValueFromKey(Vulnerability vulnerability, String key) {
+    protected static String getPropertyValueFromKey(Vulnerability vulnerability, String key) {
         if (vulnerability == null || vulnerability.getProperties() == null) {
             return "N/A";
         }

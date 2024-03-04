@@ -2,7 +2,9 @@ package com.amazon.inspector.teamcity.requests;
 
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
@@ -17,8 +19,6 @@ import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleCredentialsProvider;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 
 import static com.amazon.inspector.teamcity.ScanBuildProcessAdapter.publicProgressLogger;
 
@@ -37,58 +37,75 @@ public class SdkRequests {
 
     public String requestSbom(String sbom) {
         SdkHttpClient client = ApacheHttpClient.builder().build();
-        InspectorScanClient scanClient = InspectorScanClient.builder()
-                .region(Region.of(region))
-                .httpClient(client)
-                .credentialsProvider(getCredentialProvider())
-                .build();
+        String workingProfileName = awsProfileName;
+        AmazonWebServicesCredentials workingCredential = awsCredential;
+        boolean retry = true;
 
-        JsonNodeParser jsonNodeParser = JsonNodeParser.create();
-        DocumentUnmarshaller unmarshaller = new DocumentUnmarshaller();
-        Document document = jsonNodeParser.parse(sbom).visit(unmarshaller);
+        while (true) {
+            try {
+                InspectorScanClient scanClient = InspectorScanClient.builder()
+                        .region(Region.of(region))
+                        .httpClient(client)
+                        .credentialsProvider(getCredentialProvider(workingProfileName, workingCredential))
+                        .build();
 
-        ScanSbomRequest request = ScanSbomRequest.builder()
-                .sbom(document)
-                .outputFormat(OutputFormat.CYCLONE_DX_1_5)
-                .build();
-        ScanSbomResponse response = scanClient.scanSbom(request);
+                JsonNodeParser jsonNodeParser = JsonNodeParser.create();
+                DocumentUnmarshaller unmarshaller = new DocumentUnmarshaller();
+                Document document = jsonNodeParser.parse(sbom).visit(unmarshaller);
 
-        return response.sbom().toString();
-    }
+                ScanSbomRequest request = ScanSbomRequest.builder()
+                        .sbom(document)
+                        .outputFormat(OutputFormat.CYCLONE_DX_1_5)
+                        .build();
+                ScanSbomResponse response = scanClient.scanSbom(request);
+                return response.sbom().toString();
+            } catch (Exception e) {
+                if (!retry) {
+                    throw e;
+                }
 
-    private AwsCredentialsProvider getCredentialProvider() {
-
-
-        if (awsCredential == null) {
-            ProfileCredentialsProvider provider = ProfileCredentialsProvider.builder().profileName(awsProfileName).build();
-            publicProgressLogger.message("AWS Credential not provided, authenticating using default credential " +
-                    "provider chain and profile name " + awsProfileName);
-            StsClient stsClient = StsClient.builder().credentialsProvider(provider).region(Region.of(region)).build();
-            return getStsCredentialProvider(stsClient);
+                retry = false;
+                publicProgressLogger.message("An issue occurred while authenticating, attempting to " +
+                        "authenticate with default credential provider chain");
+                workingProfileName = "default";
+                workingCredential = null;
+            }
         }
-
-        publicProgressLogger.message("Using explicitly provided AWS credentials to authenticate.");
-        StsClient stsClient = StsClient.builder().credentialsProvider(createRawCredentialProvider()).region(Region.of(region)).build();
-        return getStsCredentialProvider(stsClient);
     }
 
-    private AwsCredentialsProvider createRawCredentialProvider() {
+    private AwsCredentialsProvider getCredentialProvider(String workingProfileName,
+                                                         AmazonWebServicesCredentials workingCredential) {
+        if (workingCredential != null) {
+            publicProgressLogger.message("Using explicitly provided AWS credentials to authenticate.");
+            return StaticCredentialsProvider.create(createRawCredentialProvider(workingCredential).resolveCredentials());
+        } else if (roleArn != null && !roleArn.isEmpty()) {
+            publicProgressLogger.message("Authenticating to STS via a role and default credential provider chain.");
+            StsClient stsClient = StsClient.builder().region(Region.of(region)).build();
+            return StsAssumeRoleCredentialsProvider.builder().stsClient(stsClient).refreshRequest(AssumeRoleRequest.builder()
+                    .roleArn(roleArn).roleSessionName("inspectorscan").build()).build();
+        } else if (workingProfileName != null && !workingProfileName.isEmpty()) {
+            publicProgressLogger.message(
+                    String.format("AWS Credential and role not provided, authenticating using \"%s\" as profile name.",
+                            workingProfileName)
+            );
+            return ProfileCredentialsProvider.builder().profileName(workingProfileName).build();
+        } else {
+            publicProgressLogger.message("Using default credential provider chain to authenticate.");
+            return DefaultCredentialsProvider.create();
+        }
+    }
+
+    private AwsCredentialsProvider createRawCredentialProvider(AmazonWebServicesCredentials workingCredential) {
         return () -> new AwsCredentials() {
             @Override
             public String accessKeyId() {
-                return awsCredential.getAWSAccessKeyId();
+                return workingCredential.getAWSAccessKeyId();
             }
 
             @Override
             public String secretAccessKey() {
-                return awsCredential.getAWSSecretKey();
+                return workingCredential.getAWSSecretKey();
             }
         };
-    }
-
-    public StsAssumeRoleCredentialsProvider getStsCredentialProvider(StsClient stsClient) {
-        return StsAssumeRoleCredentialsProvider.builder().stsClient(stsClient).refreshRequest(AssumeRoleRequest.builder()
-                .roleArn(roleArn)
-                .roleSessionName("inspectorscan").build()).build();
     }
 }
