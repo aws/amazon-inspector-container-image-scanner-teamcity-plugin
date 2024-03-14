@@ -103,7 +103,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         publicProgressLogger.message("Threshold: " + isThresholdEnabled);
 
         String activeSbomgenPath = sbomgenPath;
-        if (!sbomgenSource.equals("manual")) {
+        if (null != sbomgenSource && !sbomgenSource.equals("manual")) {
             publicProgressLogger.message("Automatic SBOMGen Sourcing selected, downloading now...");
             activeSbomgenPath = SbomgenDownloader.getBinary(sbomgenSource);
         } else {
