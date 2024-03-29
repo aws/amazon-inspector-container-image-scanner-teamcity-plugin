@@ -6,7 +6,7 @@
     <version>@Version@</version>
     <description>Allows the use of the Amazon Inspector image scanning API from within TeamCity pipelines.</description>
     <download-url></download-url>
-    <email>inspector-opensource@gmail.com</email>
+    <email>inspector-opensource@amazon.com</email>
     <vendor>
       <name>@VendorName@</name>
       <url>@VendorURL@</url>
