@@ -4,7 +4,7 @@
     <name>amazon-inspector-image-scanner</name>
     <display-name>Amazon Inspector Scanner</display-name>
     <version>@Version@</version>
-    <description>Provides the ability to add Amazon Inspector vulnerability scans to your TeamCity pipeline.</description>
+    <description>Provides the ability to add Amazon Inspector vulnerability scans to your TeamCity pipelines.</description>
     <download-url>https://github.com/aws/amazon-inspector-container-image-scanner-teamcity-plugin</download-url>
     <email>inspector-opensource@amazon.com</email>
     <vendor>
