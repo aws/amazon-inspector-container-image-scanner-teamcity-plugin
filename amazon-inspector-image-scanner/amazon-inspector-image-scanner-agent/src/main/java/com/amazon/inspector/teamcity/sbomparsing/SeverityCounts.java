@@ -9,6 +9,7 @@ import static com.amazon.inspector.teamcity.sbomparsing.Severity.CRITICAL;
 import static com.amazon.inspector.teamcity.sbomparsing.Severity.HIGH;
 import static com.amazon.inspector.teamcity.sbomparsing.Severity.LOW;
 import static com.amazon.inspector.teamcity.sbomparsing.Severity.MEDIUM;
+import static com.amazon.inspector.teamcity.sbomparsing.Severity.OTHER;
 
 
 public class SeverityCounts {
@@ -21,6 +22,7 @@ public class SeverityCounts {
         counts.put(HIGH, 0);
         counts.put(MEDIUM, 0);
         counts.put(LOW, 0);
+        counts.put(OTHER, 0);
     }
 
     public void increment(Severity severityToIncrement) {
@@ -30,7 +32,7 @@ public class SeverityCounts {
     }
 
     public String toString() {
-        return String.format("Critical: %s, High: %s, Medium: %s, Low: %s",
-                counts.get(CRITICAL), counts.get(HIGH), counts.get(MEDIUM), counts.get(LOW));
+        return String.format("Critical: %s, High: %s, Medium: %s, Low: %s, Other: %s",
+                counts.get(CRITICAL), counts.get(HIGH), counts.get(MEDIUM), counts.get(LOW), counts.get(OTHER));
     }
 }

@@ -189,6 +189,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                         .high(severityCounts.getCounts().get(Severity.HIGH))
                         .medium(severityCounts.getCounts().get(Severity.MEDIUM))
                         .low(severityCounts.getCounts().get(Severity.LOW))
+                        .other(severityCounts.getCounts().get(Severity.OTHER))
                         .build())
                 .vulnerabilities(HtmlConversionUtils.convertVulnerabilities(sbomData.getSbom().getVulnerabilities(),
                         sbomData.getSbom().getComponents()))
