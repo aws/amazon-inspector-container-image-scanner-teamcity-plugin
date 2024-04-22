@@ -203,7 +203,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         new HtmlGenerator(htmlPath).generateNewHtml(html);
 
         artifactsWatcher.addNewArtifactsPath(htmlPath);
-        artifactsWatcher.addNewArtifactsPath(teamcityDirPath + "/inspector-classic.png");
         artifactsWatcher.addNewArtifactsPath(sbomPath);
         artifactsWatcher.addNewArtifactsPath(csvPath);
 

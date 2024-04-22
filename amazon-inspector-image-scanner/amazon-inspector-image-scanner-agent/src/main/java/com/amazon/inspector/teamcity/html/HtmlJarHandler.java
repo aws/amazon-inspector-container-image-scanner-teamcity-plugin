@@ -14,13 +14,10 @@ public class HtmlJarHandler {
     public String jarPath;
 
     public String copyHtmlToDir(String destDirPath) throws IOException {
-        String logoFileName = "inspector-classic.png";
         String htmlFileName = "index.html";
-        File tempLogoFile = new File(destDirPath, logoFileName);
         File tempHtmlFile = new File(destDirPath, htmlFileName);
         tempHtmlFile.setExecutable(true);
 
-        copyFile(tempLogoFile, logoFileName);
         tempHtmlFile = copyFile(tempHtmlFile, htmlFileName);
         tempHtmlFile.setExecutable(true);
 
