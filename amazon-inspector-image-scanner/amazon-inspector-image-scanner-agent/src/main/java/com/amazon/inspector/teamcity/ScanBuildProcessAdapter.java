@@ -9,7 +9,6 @@ import com.amazon.inspector.teamcity.html.HtmlGenerator;
 import com.amazon.inspector.teamcity.html.HtmlJarHandler;
 import com.amazon.inspector.teamcity.models.html.HtmlData;
 import com.amazon.inspector.teamcity.models.html.components.ImageMetadata;
-import com.amazon.inspector.teamcity.models.html.components.SeverityValues;
 import com.amazon.inspector.teamcity.models.sbom.Sbom;
 import com.amazon.inspector.teamcity.models.sbom.SbomData;
 import com.amazon.inspector.teamcity.requests.SdkRequests;
@@ -54,7 +53,7 @@ import static com.amazon.inspector.teamcity.utils.Sanitizer.sanitizeUrl;
 
 public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
     public static BuildProgressLogger publicProgressLogger;
-    
+
     public ScanBuildProcessAdapter(
             @NotNull final ArtifactsWatcher artifactsWatcher,
             @NotNull final AgentRunningBuild build,
@@ -183,13 +182,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                         .id(splitName[0])
                         .tags(tag)
                         .sha(imageSha)
-                        .build())
-                .severityValues(SeverityValues.builder()
-                        .critical(severityCounts.getCounts().get(Severity.CRITICAL))
-                        .high(severityCounts.getCounts().get(Severity.HIGH))
-                        .medium(severityCounts.getCounts().get(Severity.MEDIUM))
-                        .low(severityCounts.getCounts().get(Severity.LOW))
-                        .other(severityCounts.getCounts().get(Severity.OTHER))
                         .build())
                 .vulnerabilities(HtmlConversionUtils.convertVulnerabilities(sbomData.getSbom().getVulnerabilities(),
                         sbomData.getSbom().getComponents()))
