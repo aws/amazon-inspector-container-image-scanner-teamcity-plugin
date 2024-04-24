@@ -13,6 +13,7 @@ public class HtmlData {
     public String bomFormat;
     public String specVersion;
     public String version;
+    public String updatedAt;
     public ImageMetadata imageMetadata;
     public List<HtmlVulnerability> vulnerabilities;
 }

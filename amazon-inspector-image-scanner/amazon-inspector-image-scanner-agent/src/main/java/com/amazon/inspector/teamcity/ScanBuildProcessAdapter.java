@@ -31,7 +31,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Map;
 
 import static com.amazon.inspector.teamcity.ScanConstants.ARCHIVE_PATH;
@@ -117,7 +119,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         String imageSha = "No Sha Found";
         for (JsonElement element : component.get("properties").getAsJsonArray()) {
             String elementName = element.getAsJsonObject().get("name").getAsString();
-            if (elementName.equals("amazon:inspector:sbom_collector:image_id")) {
+            if (elementName.equals("amazon:inspector:sbom_generator:image_id")) {
                 imageSha = element.getAsJsonObject().get("value").getAsString();
             }
         }
@@ -178,6 +180,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         HtmlData htmlData = HtmlData.builder()
                 .jsonFilePath(sbomUrl)
                 .csvFilePath(csvUrl)
+                .updatedAt(new SimpleDateFormat("MM/dd/yyyy, hh:mm:ss aa").format(Calendar.getInstance().getTime()))
                 .imageMetadata(ImageMetadata.builder()
                         .id(splitName[0])
                         .tags(tag)
