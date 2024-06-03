@@ -22,7 +22,7 @@ public class HtmlGenerator {
         String trimmedJson = StringEscapeUtils.unescapeJava(json).replace("\n", "")
                 .replace("\t", "");
         htmlContent = htmlContent.replaceAll(scriptStart,
-                scriptStart + "\n\t\t\tconst txt = '" + trimmedJson + "'");
+                scriptStart + "\n\t\t\tconst txt = `" + trimmedJson + "`");
 
         createFile(htmlContent);
     }

@@ -17,6 +17,7 @@ import com.amazon.inspector.teamcity.sbomparsing.Severity;
 import com.amazon.inspector.teamcity.sbomparsing.SeverityCounts;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -25,12 +26,15 @@ import jetbrains.buildServer.agent.AgentRunningBuild;
 import jetbrains.buildServer.agent.BuildProgressLogger;
 import jetbrains.buildServer.agent.BuildRunnerContext;
 import jetbrains.buildServer.agent.artifacts.ArtifactsWatcher;
+import org.apache.commons.io.FileUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -75,6 +79,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                 throw new RunBuildException("Scan request is interrupted.");
             }
         } catch (Exception e) {
+            e.printStackTrace(); // Outputs to agent log file
             throw new RunBuildException(e);
         }
     }
@@ -113,16 +118,12 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
 
         String sbom = new SbomgenRunner(activeSbomgenPath, archivePath, dockerUsername, dockerPassword).run();
 
-        JsonObject component = JsonParser.parseString(sbom).getAsJsonObject().get("metadata").getAsJsonObject()
-                .get("component").getAsJsonObject();
-
-        String imageSha = "No Sha Found";
-        for (JsonElement element : component.get("properties").getAsJsonArray()) {
-            String elementName = element.getAsJsonObject().get("name").getAsString();
-            if (elementName.equals("amazon:inspector:sbom_generator:image_id")) {
-                imageSha = element.getAsJsonObject().get("value").getAsString();
-            }
+        JsonElement metadata = JsonParser.parseString(sbom).getAsJsonObject().get("metadata");
+        JsonObject component = null;
+        if (metadata != null && metadata.getAsJsonObject().get("component") != null) {
+            component = metadata.getAsJsonObject().get("component").getAsJsonObject();
         }
+        String imageSha = getImageSha(sbom);
 
         publicProgressLogger.message("Sending SBOM to Inspector for validation");
 
@@ -147,74 +148,94 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         writeSbomDataToFile(gson.toJson(sbomData.getSbom()), sbomPath);
 
         CsvConverter converter = new CsvConverter(sbomData);
-        String csvFileName = String.format("%s-%s-sbom.csv", build.getProjectName(),
+        String csvVulnFileName = String.format("%s-%s-vuln.csv", build.getProjectName(),
                 build.getBuildNumber()).replaceAll("[ #]", "");
-        String csvPath = String.format("%s/%s", teamcityDirPath, csvFileName);
+        String csvDockerFileName = String.format("%s-%s-docker.csv", build.getProjectName(),
+                build.getBuildNumber()).replaceAll("[ #]", "");
+        String csvVulnPath = String.format("%s/%s", teamcityDirPath, csvVulnFileName);
+        String csvDockerPath = String.format("%s/%s", teamcityDirPath, csvDockerFileName);
 
         progressLogger.message("Converting SBOM Results to CSV.");
 
         SbomOutputParser parser = new SbomOutputParser(sbomData);
-        SeverityCounts severityCounts = parser.parseSbom();
+        parser.parseVulnCounts();
 
-        String sanitizedImageId = null;
-        String componentName = component.get("name").getAsString();
-
-        if (componentName.endsWith(".tar")) {
-            sanitizedImageId = sanitizeFilePath("file://" + componentName);
-        } else {
-            sanitizedImageId = sanitizeText(componentName);
+        String sanitizedArchiveName = null;
+        String componentName = null;
+        if (component != null && component.get("name") != null) {
+            componentName = component.get("name").getAsString();
         }
 
-        String[] splitName = sanitizedImageId.split(":");
+        if (componentName != null && componentName.endsWith(".tar")) {
+            sanitizedArchiveName = sanitizeFilePath("file://" + componentName);
+        } else {
+            sanitizedArchiveName = archivePath;
+        }
+
+        converter.routeVulnerabilities();
+        String csvVulnContent = converter.convertVulnerabilities(sanitizedArchiveName, imageSha, runnerParameters.get("teamcity.build.id"), SbomOutputParser.vulnCounts);
+        if (csvVulnContent != null) {
+            FileUtils.writeStringToFile(new File(csvVulnPath), csvVulnContent);
+            artifactsWatcher.addNewArtifactsPath(csvVulnPath);
+        }
+
+        String csvDockerContent = converter.convertDocker(sanitizedArchiveName, imageSha, runnerParameters.get("teamcity.build.id"), SbomOutputParser.dockerCounts);
+        if (csvDockerContent != null) {
+            FileUtils.writeStringToFile(new File(csvDockerPath), csvDockerContent);
+            artifactsWatcher.addNewArtifactsPath(csvDockerPath);
+        }
+
+        String[] splitName = sanitizedArchiveName.split(":");
         String tag = null;
         if (splitName.length > 1) {
             tag = splitName[1];
         }
 
-        converter.convert(csvPath, sanitizedImageId, imageSha, runnerParameters.get("teamcity.build.id"), severityCounts);
+
 
         String baseUrl = buildBaseUrl();
         String sbomUrl = sanitizeUrl(String.format("%s/%s", baseUrl, sbomFileName));
-        String csvUrl = sanitizeUrl(String.format("%s/%s", baseUrl, csvFileName));
-
+        String vulnCsvUrl = sanitizeUrl(String.format("%s/%s", baseUrl, csvVulnFileName));
+        String dockerCsvUrl = sanitizeUrl(String.format("%s/%s", baseUrl, csvDockerFileName));
         HtmlData htmlData = HtmlData.builder()
-                .jsonFilePath(sbomUrl)
-                .csvFilePath(csvUrl)
+                .artifactsPath(baseUrl.replace(":id", "?buildTab=artifacts").replace("repository/download", "buildConfiguration"))
                 .updatedAt(new SimpleDateFormat("MM/dd/yyyy, hh:mm:ss aa").format(Calendar.getInstance().getTime()))
                 .imageMetadata(ImageMetadata.builder()
                         .id(splitName[0])
                         .tags(tag)
                         .sha(imageSha)
                         .build())
+                .docker(HtmlConversionUtils.convertDocker(sbomData.getSbom().getMetadata(), sbomData.getSbom().getVulnerabilities(),
+                        sbomData.getSbom().getComponents()))
                 .vulnerabilities(HtmlConversionUtils.convertVulnerabilities(sbomData.getSbom().getVulnerabilities(),
                         sbomData.getSbom().getComponents()))
                 .build();
-
         String htmlJarPath = new File(HtmlJarHandler.class.getProtectionDomain().getCodeSource().getLocation()
                 .toURI()).getPath();
+
         HtmlJarHandler htmlJarHandler = new HtmlJarHandler(htmlJarPath);
         String htmlPath = htmlJarHandler.copyHtmlToDir(teamcityDirPath);
-        String html = new Gson().toJson(htmlData);
+        String html = gson.toJson(htmlData);
         new HtmlGenerator(htmlPath).generateNewHtml(html);
 
         artifactsWatcher.addNewArtifactsPath(htmlPath);
         artifactsWatcher.addNewArtifactsPath(sbomPath);
-        artifactsWatcher.addNewArtifactsPath(csvPath);
 
         String serverUrl = String.format("http://%s",
                 build.getSharedBuildParameters().getAllParameters().get("env.BUILD_URL").split("/")[2]);
 
         progressLogger.message("Prefixing file paths with the Server URL from settings, currently: " + serverUrl);
-        progressLogger.message("CSV Output File: " + csvUrl);
+        progressLogger.message("Package Vulnerabilities CSV Output File: " + vulnCsvUrl);
+        progressLogger.message("Docker Vulnerabilities CSV Output File: " + dockerCsvUrl);
         progressLogger.message("SBOM Output File: " + sbomUrl);
         progressLogger.message(String.format("HTML Report File: %s/index.html", baseUrl));
         progressLogger.message("Files can also be downloaded from the artifacts tab.");
 
-        progressLogger.message(severityCounts.toString());
+        progressLogger.message(SbomOutputParser.aggregateCounts.toString());
         if (!isThresholdEnabled) {
             progressLogger.message("Ignoring results due to thresholds being disabled.");
         }
-        boolean doesBuildPass = !doesBuildFail(severityCounts.getCounts());
+        boolean doesBuildPass = !doesBuildFail(SbomOutputParser.aggregateCounts.getCounts());
 
         if (!isThresholdEnabled) {
             scanRequestSuccessHandler();
@@ -223,6 +244,26 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         } else {
             scanRequestFailureHandler();
         }
+    }
+
+    public static String getImageSha(String sbom) {
+        try {
+            JsonElement jsonElement = JsonParser.parseString(sbom);
+            JsonObject metadata = jsonElement.getAsJsonObject().get("metadata").getAsJsonObject();
+            JsonObject component = metadata.get("component").getAsJsonObject();
+            JsonArray properties = component.getAsJsonObject().get("properties").getAsJsonArray();
+
+            for (JsonElement property : properties) {
+                if (property.getAsJsonObject().get("name").getAsString().contains("image_id")) {
+                    return property.getAsJsonObject().get("value").getAsString();
+                }
+            }
+        } catch (Exception e) {
+            publicProgressLogger.message("An exception occurred when getting image sha.");
+            e.printStackTrace();
+        }
+
+        return "N/A";
     }
 
     public static void writeSbomDataToFile(String sbomData, String outputFilePath) throws IOException {

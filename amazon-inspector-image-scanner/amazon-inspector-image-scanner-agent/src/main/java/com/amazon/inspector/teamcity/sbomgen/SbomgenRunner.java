@@ -16,9 +16,10 @@ import static com.amazon.inspector.teamcity.sbomgen.SbomgenUtils.stripProperties
 
 public class SbomgenRunner {
     public String sbomgenPath;
+    public String archiveType;
     public String archivePath;
     @Setter
-    public static String dockerUsername;
+    public String dockerUsername;
     @Setter
     public String dockerPassword;
 
@@ -35,6 +36,14 @@ public class SbomgenRunner {
         this.dockerPassword = dockerPassword;
     }
 
+    public SbomgenRunner(String sbomgenPath, String activeArchiveType, String archivePath, String dockerUsername, String dockerPassword) {
+        this.sbomgenPath = sbomgenPath;
+        this.archivePath = archivePath;
+        this.archiveType = activeArchiveType;
+        this.dockerUsername = dockerUsername;
+        this.dockerPassword = dockerPassword;
+    }
+
     public String run() throws Exception {
         return runSbomgen(sbomgenPath, archivePath);
     }
@@ -44,17 +53,14 @@ public class SbomgenRunner {
             throw new IllegalArgumentException("Invalid sbomgen path: " + sbomgenPath);
         }
 
-        if (!isValidPath(archivePath)) {
-            throw new IllegalArgumentException("Invalid archive path: " + archivePath);
-        }
-
         publicProgressLogger.message("Making downloaded SBOMGen executable...");
         new ProcessBuilder(new String[]{"chmod", "+x", sbomgenPath}).start();
+
+        publicProgressLogger.message("Running command...");
 
         String[] command = new String[] {
                 sbomgenPath, "container", "--image", archivePath
         };
-
         publicProgressLogger.message(Arrays.toString(command));
         ProcessBuilder builder = new ProcessBuilder(command);
         Map<String, String> environment = builder.environment();
@@ -83,7 +89,7 @@ public class SbomgenRunner {
             if (line == null) { break; }
         }
 
-        return stripProperties(processSbomgenOutput(sb.toString()));
+        return processSbomgenOutput(sb.toString());
     }
 
     @VisibleForTesting
