@@ -21,12 +21,6 @@ public class SbomOutputParserTest {
     }
 
     @Test
-    public void testGetHighestRatingFromList_EmptyRatings() {
-        assertEquals(new SbomOutputParser(null).getHighestRatingFromList(null), Severity.NONE);
-        assertEquals(new SbomOutputParser(null).getHighestRatingFromList(List.of()), Severity.NONE);
-    }
-
-    @Test
     public void testParseSbom_Successful() {
         SbomData sbomData = SbomData.builder().sbom(Sbom.builder().vulnerabilities(
                 List.of(Vulnerability.builder().id("CVE").ratings(

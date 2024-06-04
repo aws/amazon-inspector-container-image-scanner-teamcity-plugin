@@ -197,8 +197,9 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         String sbomUrl = sanitizeUrl(String.format("%s/%s", baseUrl, sbomFileName));
         String vulnCsvUrl = sanitizeUrl(String.format("%s/%s", baseUrl, csvVulnFileName));
         String dockerCsvUrl = sanitizeUrl(String.format("%s/%s", baseUrl, csvDockerFileName));
+        String artifactsUrl = baseUrl.replace(":id", "?buildTab=artifacts").replace("repository/download", "buildConfiguration");
         HtmlData htmlData = HtmlData.builder()
-                .artifactsPath(baseUrl.replace(":id", "?buildTab=artifacts").replace("repository/download", "buildConfiguration"))
+                .artifactsPath(artifactsUrl)
                 .updatedAt(new SimpleDateFormat("MM/dd/yyyy, hh:mm:ss aa").format(Calendar.getInstance().getTime()))
                 .imageMetadata(ImageMetadata.builder()
                         .id(splitName[0])
@@ -225,10 +226,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                 build.getSharedBuildParameters().getAllParameters().get("env.BUILD_URL").split("/")[2]);
 
         progressLogger.message("Prefixing file paths with the Server URL from settings, currently: " + serverUrl);
-        progressLogger.message("Package Vulnerabilities CSV Output File: " + vulnCsvUrl);
-        progressLogger.message("Docker Vulnerabilities CSV Output File: " + dockerCsvUrl);
-        progressLogger.message("SBOM Output File: " + sbomUrl);
-        progressLogger.message(String.format("HTML Report File: %s/index.html", baseUrl));
+        progressLogger.message("Build Artifacts: " + baseUrl.replace(":id", "?buildTab=artifacts").replace("repository/download", "buildConfiguration"));
         progressLogger.message("Files can also be downloaded from the artifacts tab.");
 
         progressLogger.message(SbomOutputParser.aggregateCounts.toString());

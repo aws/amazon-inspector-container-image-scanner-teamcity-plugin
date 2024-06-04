@@ -11,12 +11,15 @@ import java.util.List;
 public class SbomOutputParser {
     @Getter
     private SbomData sbom;
-    public static SeverityCounts vulnCounts = new SeverityCounts();
-    public static SeverityCounts dockerCounts = new SeverityCounts();
-    public static SeverityCounts aggregateCounts = new SeverityCounts();
+    public static SeverityCounts vulnCounts;
+    public static SeverityCounts dockerCounts;
+    public static SeverityCounts aggregateCounts;
 
     public SbomOutputParser(SbomData sbomData) {
         this.sbom = sbomData;
+        vulnCounts = new SeverityCounts();
+        dockerCounts = new SeverityCounts();
+        aggregateCounts = new SeverityCounts();
     }
 
     public void parseVulnCounts() {

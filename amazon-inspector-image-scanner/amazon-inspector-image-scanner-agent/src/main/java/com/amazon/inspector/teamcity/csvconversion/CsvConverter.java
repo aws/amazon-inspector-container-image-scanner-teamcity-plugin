@@ -32,12 +32,15 @@ import static com.amazon.inspector.teamcity.html.HtmlConversionUtils.getLineComp
 public class CsvConverter {
     private SbomData sbomData;
     private Map<String, Component> componentMap;
-    private static List<CsvData> dockerData = new ArrayList<>();
-    private static List<CsvData> vulnData = new ArrayList<>();
+    private static List<CsvData> dockerData;
+    private static List<CsvData> vulnData;
 
     public CsvConverter(SbomData sbomData) {
         this.sbomData = sbomData;
         this.componentMap = populateComponentMap(sbomData);
+
+        vulnData = new ArrayList<>();
+        dockerData = new ArrayList<>();
     }
 
     private Map<String, Component> populateComponentMap(SbomData sbomData) {
