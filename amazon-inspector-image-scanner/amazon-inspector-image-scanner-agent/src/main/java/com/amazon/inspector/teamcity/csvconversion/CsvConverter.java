@@ -1,5 +1,6 @@
 package com.amazon.inspector.teamcity.csvconversion;
 
+import com.amazon.inspector.teamcity.html.HtmlConversionUtils;
 import com.amazon.inspector.teamcity.sbomparsing.Severity;
 import com.amazon.inspector.teamcity.sbomparsing.SeverityCounts;
 import com.google.common.annotations.VisibleForTesting;
@@ -17,41 +18,29 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.amazon.inspector.teamcity.ScanBuildProcessAdapter.publicProgressLogger;
+import static com.amazon.inspector.teamcity.html.HtmlConversionUtils.getLineComponents;
+
 public class CsvConverter {
     private SbomData sbomData;
     private Map<String, Component> componentMap;
+    private static List<CsvData> dockerData;
+    private static List<CsvData> vulnData;
 
     public CsvConverter(SbomData sbomData) {
         this.sbomData = sbomData;
         this.componentMap = populateComponentMap(sbomData);
-    }
 
-    public void convert(String filePath, String imageName, String imageSha, String buildId, SeverityCounts counts) {
-        Map<Severity, Integer> countMap = counts.getCounts();
-        List<String[]> dataLineArray = new ArrayList<>();
-        dataLineArray.add(new String[]{"#image_name:" + imageName, "image_sha:" + imageSha, "build_id:" + buildId});
-        dataLineArray.add(new String[]{"#low_vulnerabilities:" + countMap.get(Severity.LOW), "medium_vulnerabilities:" + countMap.get(Severity.MEDIUM),
-                "high_vulnerabilities:" + countMap.get(Severity.HIGH), "critical_vulnerabilities:" + countMap.get(Severity.CRITICAL),
-                "other_vulnerabilities:" + countMap.get(Severity.OTHER)});
-        dataLineArray.addAll(buildCsvDataLines());
-
-        File file = new File(filePath);
-
-        try {
-            FileWriter outputfile = new FileWriter(file, Charset.forName("UTF-8"));
-            CSVWriter writer = new CSVWriter(outputfile);
-
-            writer.writeAll(dataLineArray);
-            writer.close();
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+        vulnData = new ArrayList<>();
+        dockerData = new ArrayList<>();
     }
 
     private Map<String, Component> populateComponentMap(SbomData sbomData) {
@@ -68,39 +57,131 @@ public class CsvConverter {
         return componentMap;
     }
 
-    protected List<String[]> buildCsvDataLines() {
+    public String convertVulnerabilities(String imageName, String imageSha, String buildId, SeverityCounts counts) throws IOException {
+        Map<Severity, Integer> countMap = counts.getCounts();
+        String tmpdir = System.getProperty("java.io.tmpdir");
+        List<String[]> dataLineArray = new ArrayList<>();
+
+        dataLineArray.add(new String[]{String.format("#image_name: %s; image_sha: %s; build_id: %s", imageName, imageSha, buildId)});
+        dataLineArray.add(new String[]{String.format("#low_vulnerabilities: %s; medium_vulnerabilities: %s; high_vulnerabilities: %s; " +
+                        "critical_vulnerabilities: %s; other_vulnerabilities: %s", countMap.get(Severity.LOW),
+                countMap.get(Severity.MEDIUM), countMap.get(Severity.HIGH), countMap.get(Severity.CRITICAL),
+                countMap.get(Severity.OTHER))});
+        List<String[]> dataLines = buildVulnerabilityDataLines();
+        if (vulnData.size() <= 0) {
+            return null;
+        }
+
+        dataLineArray.addAll(dataLines);
+        File file = new File(tmpdir + "/temp.csv");
+
+        try {
+            FileWriter outputfile = new FileWriter(file, Charset.forName("UTF-8"));
+            CSVWriter writer = new CSVWriter(outputfile);
+
+            writer.writeAll(dataLineArray);
+            writer.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())), StandardCharsets.UTF_8);
+    }
+
+    public String convertDocker(String imageName, String imageSha, String buildId, SeverityCounts vulnCounts) throws IOException {
+        Map<Severity, Integer> countMap = vulnCounts.getCounts();
+        String tmpdir = System.getProperty("java.io.tmpdir");
+        List<String[]> dataLineArray = new ArrayList<>();
+
+        dataLineArray.add(new String[]{String.format("#image_name: %s; image_sha: %s; build_id: %s", imageName, imageSha, buildId)});
+        dataLineArray.add(new String[]{String.format("#low_vulnerabilities: %s; medium_vulnerabilities: %s; high_vulnerabilities: %s; " +
+                        "critical_vulnerabilities: %s; other_vulnerabilities: %s", countMap.get(Severity.LOW),
+                countMap.get(Severity.MEDIUM), countMap.get(Severity.HIGH), countMap.get(Severity.CRITICAL),
+                countMap.get(Severity.OTHER))});
+
+        List<String[]> dataLines = buildDockerDataLines();
+        if (dockerData.size() <= 0) {
+            return null;
+        }
+
+        dataLineArray.addAll(dataLines);
+
+        File file = new File(tmpdir + "/temp.csv");
+
+        try {
+            FileWriter outputfile = new FileWriter(file, Charset.forName("UTF-8"));
+            CSVWriter writer = new CSVWriter(outputfile);
+
+            writer.writeAll(dataLineArray);
+            writer.close();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return new String(Files.readAllBytes(Paths.get(file.getAbsolutePath())), StandardCharsets.UTF_8);
+    }
+
+
+    protected List<String[]> buildVulnerabilityDataLines() {
         List<String[]> dataLines = new ArrayList<>();
         String[] headers = new String[] {"Vulnerability ID", "Severity", "Published", "Modified", "Description",
                 "Package Installed Version", "Package Fixed Version", "Package Path", "EPSS Score", "Exploit Available",
                 "Exploit Last Seen", "CWEs"};
         dataLines.add(headers);
 
-        List<Vulnerability> vulnerabilities = sbomData.getSbom().getVulnerabilities();
+        for (CsvData csvData : vulnData) {
+            String[] dataLine = new String[] {csvData.getVulnerabilityId(),
+                    StringUtils.capitalize(csvData.getSeverity()), csvData.getPublished(), csvData.getModified(),
+                    csvData.getDescription(), csvData.getPackageInstalledVersion(),
+                    csvData.getPackageFixedVersion(), csvData.getPackagePath(), csvData.getEpssScore(),
+                    csvData.getExploitAvailable(), csvData.getExploitLastSeen(), csvData.getCwes()};
 
-        if (vulnerabilities == null) {
-            return dataLines;
-        }
-
-        for (Vulnerability vulnerability : vulnerabilities) {
-            for (Affect componentRef : vulnerability.getAffects()) {
-                CsvData csvData = buildCsvData(vulnerability, componentMap.get(componentRef.getRef()));
-
-                String[] dataLine = new String[] {csvData.getVulnerabilityId(),
-                        StringUtils.capitalize(csvData.getSeverity()), csvData.getPublished(), csvData.getModified(),
-                        csvData.getDescription(), csvData.getPackageInstalledVersion(),
-                        csvData.getPackageFixedVersion(), csvData.getPackagePath(), csvData.getEpssScore(),
-                        csvData.getExploitAvailable(), csvData.getExploitLastSeen(), csvData.getCwes()};
-
-                dataLines.add(dataLine);
-            }
+            dataLines.add(dataLine);
         }
 
         return dataLines;
     }
 
-    public CsvData buildCsvData(Vulnerability vulnerability, Component component) {
+    protected List<String[]> buildDockerDataLines() {
+        List<String[]> dataLines = new ArrayList<>();
+        String[] headers = new String[] {"Vulnerability ID", "Severity", "Description", "File", "Line(s)"};
+        dataLines.add(headers);
+
+        for (CsvData csvData: dockerData) {
+            String[] dataLine = new String[] {csvData.getVulnerabilityId(), StringUtils.capitalize(csvData.getSeverity()),
+                    csvData.getDescription(), csvData.getFile(), csvData.getLines()};
+
+            dataLines.add(dataLine);
+        }
+
+        return dataLines;
+    }
+
+    public void routeVulnerabilities() {
+        List<Vulnerability> vulnerabilities = sbomData.getSbom().getVulnerabilities();
+
+        if (vulnerabilities == null) {
+            return;
+        }
+
+        for (Vulnerability vulnerability : vulnerabilities) {
+            for (Affect componentRef : vulnerability.getAffects()) {
+                Component comp = componentMap.get(componentRef.getRef());
+                if (comp != null) {
+                    routeDockerCsvData(vulnerability, comp);
+                    routeVulnCsvData(vulnerability, comp);
+                }
+            }
+        }
+    }
+
+    public void routeDockerCsvData(Vulnerability vulnerability, Component component) {
+        String installedVersion = component.getPurl();
         String fixedVersion = getPropertyValueFromKey(vulnerability,
                 String.format("amazon:inspector:sbom_scanner:fixed_version:%s",  component.getBomRef()));
+
         String exploitAvailable = getPropertyValueFromKey(vulnerability,
                 "amazon:inspector:sbom_scanner:exploit_available");
         String exploitLastSeen = getPropertyValueFromKey(vulnerability,
@@ -108,20 +189,68 @@ public class CsvConverter {
         String path = getPropertyValueFromKey(component,
                 "amazon:inspector:sbom_scanner:path");
 
-        return CsvData.builder()
+        List<Component> lineComponents = getLineComponents(sbomData.getSbom().getComponents());
+        for (Component lineComponent : lineComponents) {
+            String file = lineComponent.getName();
+            String lines = HtmlConversionUtils.getLines(vulnerability.getId(), lineComponent.getProperties());
+
+            if (lineComponent != null && lineComponent.getName().startsWith("dockerfile:")) {
+                lines += " - Derived";
+            }
+
+            CsvData csvData = CsvData.builder()
+                    .vulnerabilityId(vulnerability.getId())
+                    .severity(getSeverity(vulnerability))
+                    .published(vulnerability.getCreated())
+                    .modified(getUpdated(vulnerability))
+                    .epssScore(getEpssScore(vulnerability))
+                    .description(vulnerability.getDescription())
+                    .packageInstalledVersion(installedVersion)
+                    .packageFixedVersion(fixedVersion)
+                    .packagePath(path)
+                    .cwes(getCwesAsString(vulnerability))
+                    .exploitAvailable(exploitAvailable)
+                    .exploitLastSeen(exploitLastSeen)
+                    .file(file)
+                    .lines(lines)
+                    .build();
+
+            if (vulnerability.getId().startsWith("IN-DOCKER")) {
+                dockerData.add(csvData);
+            }
+        }
+    }
+
+    public void routeVulnCsvData(Vulnerability vulnerability, Component component) {
+        String installedVersion = component.getPurl();
+        String fixedVersion = getPropertyValueFromKey(vulnerability,
+                String.format("amazon:inspector:sbom_scanner:fixed_version:%s",  component.getBomRef()));
+
+        String exploitAvailable = getPropertyValueFromKey(vulnerability,
+                "amazon:inspector:sbom_scanner:exploit_available");
+        String exploitLastSeen = getPropertyValueFromKey(vulnerability,
+                "amazon:inspector:sbom_scanner:exploit_last_seen_in_public");
+        String path = getPropertyValueFromKey(component,
+                "amazon:inspector:sbom_scanner:path");
+
+        CsvData csvData = CsvData.builder()
                 .vulnerabilityId(vulnerability.getId())
                 .severity(getSeverity(vulnerability))
                 .published(vulnerability.getCreated())
                 .modified(getUpdated(vulnerability))
                 .epssScore(getEpssScore(vulnerability))
                 .description(vulnerability.getDescription())
-                .packageInstalledVersion(component.getPurl())
+                .packageInstalledVersion(installedVersion)
                 .packageFixedVersion(fixedVersion)
                 .packagePath(path)
                 .cwes(getCwesAsString(vulnerability))
                 .exploitAvailable(exploitAvailable)
                 .exploitLastSeen(exploitLastSeen)
                 .build();
+
+        if (!vulnerability.getId().startsWith("IN-DOCKER")) {
+            vulnData.add(csvData);
+        }
     }
 
     @VisibleForTesting
