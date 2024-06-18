@@ -206,7 +206,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                         .tags(tag)
                         .sha(imageSha)
                         .build())
-                .docker(HtmlConversionUtils.convertDocker(sbomData.getSbom().getMetadata(), sbomData.getSbom().getVulnerabilities(),
+                .docker(HtmlConversionUtils.convertDocker(sbomData.getSbom().getVulnerabilities(),
                         sbomData.getSbom().getComponents()))
                 .vulnerabilities(HtmlConversionUtils.convertVulnerabilities(sbomData.getSbom().getVulnerabilities(),
                         sbomData.getSbom().getComponents()))

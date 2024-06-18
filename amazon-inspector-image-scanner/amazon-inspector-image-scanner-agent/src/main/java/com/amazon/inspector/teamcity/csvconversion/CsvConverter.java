@@ -32,8 +32,8 @@ import static com.amazon.inspector.teamcity.html.HtmlConversionUtils.getLineComp
 public class CsvConverter {
     private SbomData sbomData;
     private Map<String, Component> componentMap;
-    private static List<CsvData> dockerData;
-    private static List<CsvData> vulnData;
+    static List<CsvData> dockerData;
+    static List<CsvData> vulnData;
 
     public CsvConverter(SbomData sbomData) {
         this.sbomData = sbomData;
@@ -43,7 +43,7 @@ public class CsvConverter {
         dockerData = new ArrayList<>();
     }
 
-    private Map<String, Component> populateComponentMap(SbomData sbomData) {
+    Map<String, Component> populateComponentMap(SbomData sbomData) {
         Map<String, Component> componentMap = new HashMap<>();
 
         if (sbomData == null || sbomData.getSbom() == null || sbomData.getSbom().getComponents() == null) {

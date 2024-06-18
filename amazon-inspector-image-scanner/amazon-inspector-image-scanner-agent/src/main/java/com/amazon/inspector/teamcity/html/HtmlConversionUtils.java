@@ -76,6 +76,11 @@ public class HtmlConversionUtils {
 
     public static List<Component> getLineComponents(List<Component> components) {
         List<Component> lineComponents = new ArrayList<>();
+
+        if (components == null) {
+            return lineComponents;
+        }
+
         for (Component component : components) {
             if (component.getName().contains("dockerfile")) {
                 lineComponents.add(component);
@@ -85,7 +90,7 @@ public class HtmlConversionUtils {
         return lineComponents;
     }
 
-    public static List<DockerVulnerability> convertDocker(Metadata metadata, List<Vulnerability> vulnerabilities,
+    public static List<DockerVulnerability> convertDocker(List<Vulnerability> vulnerabilities,
                                                           List<Component> components) {
         List<DockerVulnerability> dockerVulnerabilities = new ArrayList<>();
         List<Component> lineComponents = getLineComponents(components);
@@ -134,7 +139,7 @@ public class HtmlConversionUtils {
         return dockerVulnerabilities;
     }
 
-    private static int sortVulnerabilitiesBySeverity(String s1, String s2) {
+    static int sortVulnerabilitiesBySeverity(String s1, String s2) {
         Severity sev1 = Severity.getSeverityFromString(s1);
         Severity sev2 = Severity.getSeverityFromString(s2);
 
@@ -151,7 +156,7 @@ public class HtmlConversionUtils {
         return null;
     }
 
-    private static String getSeverity(List<Rating> ratings) {
+    static String getSeverity(List<Rating> ratings) {
         if (ratings == null || ratings.size() == 0) {
             return null;
         }
