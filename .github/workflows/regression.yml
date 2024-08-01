@@ -39,14 +39,14 @@ jobs:
       - name: Build plugin
         run: cd amazon-inspector-image-scanner && mvn -U clean package
         
-      # - name: Copy Built Plugin
-      #   uses: appleboy/scp-action@v0.1.7
-      #   with:
-      #     key: ${{ secrets.EC2_INSTANCE }}
-      #     host: ${{ secrets.HOST }}
-      #     username: ec2-user
-      #     source: "target/amazon-inspector-image-scanner.hpi"
-      #     target: "/home/ec2-user"
+      - name: Copy Built Plugin
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          key: ${{ secrets.EC2_INSTANCE }}
+          host: ${{ secrets.HOST }}
+          username: ec2-user
+          source: "amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.hpi"
+          target: "/home/ec2-user"
           
       # - name: Copy file
       #   uses: appleboy/ssh-action@v1.0.3
