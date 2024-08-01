@@ -48,14 +48,16 @@ jobs:
           source: "amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip"
           target: "/home/ec2-user"
           
-      # - name: Copy file
-      #   uses: appleboy/ssh-action@v1.0.3
-      #   with:
-      #     key: ${{ secrets.EC2_INSTANCE }}
-      #     host: 54.159.142.179
-      #     username: ec2-user
-      #     script: cp "/home/ec2-user/target/amazon-inspector-image-scanner.hpi" "/home/ec2-user/.jenkins/plugins"
-          
+      - name: Copy file
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          key: ${{ secrets.EC2_INSTANCE }}
+          host: ${{ secrets.HOST }}
+          username: ec2-user
+          script: |
+            mv "/home/ec2-user/amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip" "/home/ec2-user/.BuildServer/plugins/amazon-inspector-image-scanner.zip"
+            rm -rf "/home/ec2-user/amazon-inspector-image-scanner"
+            
       # - name: find files
       #   run: |
       #     ls
