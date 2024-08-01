@@ -57,35 +57,35 @@ jobs:
           script: |
             mv "/home/ec2-user/amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip" "/home/ec2-user/.BuildServer/plugins/amazon-inspector-image-scanner.zip"
             rm -rf "/home/ec2-user/amazon-inspector-image-scanner"
-            
-      # - name: find files
-      #   run: |
-      #     ls
-      #     ls target
-      # - name: Get Jenkins Commands
-      #   uses: appleboy/ssh-action@v1.0.3
-      #   with:
-      #     key_path: .github/workflows/id_rsa
-      #     host: 54.159.142.179
-      #     username: admin
-      #     port: 33018
-      #     script: restart
+      
+      - name: Get Jenkins Commands
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          key_path: ${{ secrets.EC2_INSTANCE }}
+          host: ${{ secrets.HOST }}
+          username: ec2-user
+          script: |
+            sudo systemctl stop teamcity
+            sleep 30s
+            sudo systemctl start teamcity
 
-      # - name: Init SSH
-      #   run: |
-      #     mkdir -p ~/.ssh/
-      #     chmod 700 ~/.ssh/
-      #     cp .github/workflows/id_rsa ~/.ssh/id_rsa
-      #     chmod 600 ~/.ssh/id_rsa
+      - name: Init SSH
+        env: 
+          ID_RSA: ${{ secrets.EC2_INSTANCE }}
+        run: |
+          mkdir -p ~/.ssh/
+          chmod 700 ~/.ssh/
+          echo $ID_RSA > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
           
-      # - name: Wait For Restart
-      #   run: sleep 1m
+      - name: Wait For Restart
+        run: sleep 1m
         
       # - name: Run Script
-      #   run: python .github/workflows/GHATest.py -l admin -p 33018 -a 54.159.142.179 -n Regression_Lab
+      #   run: python .github/workflows/GHATest.py -l admin -p 33018 -a ${{ secrets.HOST }} -n Regression_Lab
 
       # - name: Run Script With Failure
-      #   run: python .github/workflows/GHATest.py -l admin -p 33018 -a 54.159.142.179 -n test
+      #   run: python .github/workflows/GHATest.py -l admin -p 33018 -a ${{ secrets.HOST }} -n test
 
       - name: Revoke EC2 Access
         if: always()
