@@ -58,25 +58,24 @@ jobs:
             mv "/home/ec2-user/amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip" "/home/ec2-user/.BuildServer/plugins/amazon-inspector-image-scanner.zip"
             rm -rf "/home/ec2-user/amazon-inspector-image-scanner"
       
-      - name: Get Jenkins Commands
+      - name: Stop TeamCity
         uses: appleboy/ssh-action@v1.0.3
         with:
-          key_path: ${{ secrets.EC2_INSTANCE }}
+          key: ${{ secrets.EC2_INSTANCE }}
           host: ${{ secrets.HOST }}
           username: ec2-user
-          script: |
-            sudo systemctl stop teamcity
-            sleep 30s
-            sudo systemctl start teamcity
+          script: sudo systemctl stop teamcity
 
-      - name: Init SSH
-        env: 
-          ID_RSA: ${{ secrets.EC2_INSTANCE }}
-        run: |
-          mkdir -p ~/.ssh/
-          chmod 700 ~/.ssh/
-          echo $ID_RSA > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
+      - name: wait 30s
+        run: sleep 30s
+            
+      - name: Start TeamCity
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          key: ${{ secrets.EC2_INSTANCE }}
+          host: ${{ secrets.HOST }}
+          username: ec2-user
+          script: sudo systemctl start teamcity
           
       - name: Wait For Restart
         run: sleep 1m
