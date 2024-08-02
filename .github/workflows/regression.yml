@@ -79,12 +79,12 @@ jobs:
           
       - name: Wait For Restart
         run: sleep 1m
-        
-      # - name: Run Script
-      #   run: python .github/workflows/GHATest.py -l admin -p 33018 -a ${{ secrets.HOST }} -n Regression_Lab
 
-      # - name: Run Script With Failure
-      #   run: python .github/workflows/GHATest.py -l admin -p 33018 -a ${{ secrets.HOST }} -n test
+      - name: Install Python Deps
+        run: pip install requests
+        
+      - name: Run Script
+        run: python .github/workflows/GHATest.py -u ${{ secrets.USER }} -p ${{ secrets.password}} -a ${{ secrets.HOST }} -n TEST_TEST
 
       - name: Revoke EC2 Access
         if: always()
