@@ -79,7 +79,7 @@ def check_if_build_finished():
 
 def did_build_pass(buildId):
     response = requests.get(
-        "http:// + url + "/app/rest/builds",
+        "http://" + url + "/app/rest/builds",
         auth=HTTPBasicAuth(username, password),
         params={'locator': f'buildType:{buildName},id:{buildId}'}
     )
