@@ -76,9 +76,6 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ec2-user
           script: sudo systemctl start teamcity
-          
-      - name: Wait For Restart
-        run: sleep 1m
 
       - name: Install Python Deps
         run: pip install requests
