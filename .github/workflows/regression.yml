@@ -90,4 +90,4 @@ jobs:
         if: always()
         run: |
           IP=$(curl -s http://whatismyip.akamai.com/)
-          aws ec2 revoke-security-group-ingress --group-name "launch-wizard-3" --protocol -1 --port -1 --cidr $IP/32 --profile default --output text
+          aws ec2 revoke-security-group-ingress --group-name "launch-wizard-4" --protocol -1 --port -1 --cidr $IP/32 --profile default --output text
