@@ -43,7 +43,7 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           key: ${{ secrets.EC2_INSTANCE }}
-          host: ${{ secrets.HOST }}
+          host: http://ec2-3-86-251-223.compute-1.amazonaws.com
           port: 80
           username: ec2-user
           source: "amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip"
@@ -53,7 +53,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           key: ${{ secrets.EC2_INSTANCE }}
-          host: ${{ secrets.HOST }}
+          host: http://ec2-3-86-251-223.compute-1.amazonaws.com
           username: ec2-user
           script: |
             mv "/home/ec2-user/amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip" "/home/ec2-user/.BuildServer/plugins/amazon-inspector-image-scanner.zip"
