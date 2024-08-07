@@ -44,6 +44,7 @@ jobs:
         with:
           key: ${{ secrets.EC2_INSTANCE }}
           host: ${{ secrets.HOST }}
+          port: 80
           username: ec2-user
           source: "amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip"
           target: "/home/ec2-user"
