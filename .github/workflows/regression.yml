@@ -62,7 +62,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           key: ${{ secrets.EC2_INSTANCE }}
-          host: http://ec2-3-86-251-223.compute-1.amazonaws.com
+          host: 3.86.251.223
           username: ec2-user
           script: sudo systemctl stop teamcity
 
@@ -73,7 +73,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           key: ${{ secrets.EC2_INSTANCE }}
-          host: http://ec2-3-86-251-223.compute-1.amazonaws.com
+          host: 3.86.251.223
           username: ec2-user
           script: sudo systemctl start teamcity
 
