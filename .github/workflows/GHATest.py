@@ -67,6 +67,7 @@ def check_if_build_finished():
         check_status_code(response)
 
         root = ET.fromstring(response.content)
+        print(root.attrib)
         if buildId == None:
             buildId = root[0].attrib['id']
             print("Got buildId: " + buildId)
@@ -79,7 +80,7 @@ def check_if_build_finished():
 
 def did_build_pass(buildId):
     response = requests.get(
-        "http://" + url + "/app/rest/builds",
+        url + "/app/rest/builds",
         auth=HTTPBasicAuth(username, password),
         params={'locator': f'buildType:{buildName},id:{buildId}'}
     )
@@ -89,11 +90,10 @@ def did_build_pass(buildId):
     root = ET.fromstring(response.content)
     return root[0].attrib['status'] == 'SUCCESS'
 
-# start_build()
+start_build()
 buildId = check_if_build_finished()
 buildPassed = did_build_pass(buildId)
 
 if (not buildPassed):
     sys.exit(1)
-
 
