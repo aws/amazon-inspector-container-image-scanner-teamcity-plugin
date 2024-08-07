@@ -77,6 +77,9 @@ jobs:
           username: ec2-user
           script: sudo systemctl start teamcity
 
+      - name: wait 1m
+        run: sleep 1m
+
       - name: Install Python Deps
         run: pip install requests
         
