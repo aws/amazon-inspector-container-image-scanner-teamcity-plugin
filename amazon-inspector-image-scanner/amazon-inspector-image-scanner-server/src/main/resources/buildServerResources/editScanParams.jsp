@@ -164,6 +164,16 @@
         </td>
     </tr>
     <tr>
+        <th></th>
+        <td>
+            <props:checkboxProperty id="isThresholdEqual" name="isThresholdEqual"/>
+            <label for="isThresholdEqual">Enable Equal Threshold</label>
+            <span class="smallNote">
+              Specifies whether build will only pass if vulnerabilities equal threshholds.
+            </span>
+        </td>
+    </tr>
+    <tr>
         <th><label size="10" for="${countCritical}">Count Critical: <l:star/></label></th>
         <td>
             <div>
