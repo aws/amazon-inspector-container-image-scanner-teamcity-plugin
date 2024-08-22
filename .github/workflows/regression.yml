@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Jenkins
+name: Regression Lab
 
 # Controls when the workflow will run
 on:
@@ -43,7 +43,7 @@ jobs:
         uses: appleboy/scp-action@v0.1.7
         with:
           key: ${{ secrets.EC2_INSTANCE }}
-          host: 3.86.251.223
+          host: ${{ secrets.HOST }}
           username: ec2-user
           source: "amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip"
           target: "/home/ec2-user"
@@ -52,7 +52,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           key: ${{ secrets.EC2_INSTANCE }}
-          host: 3.86.251.223
+          host: ${{ secrets.HOST }}
           username: ec2-user
           script: |
             mv "/home/ec2-user/amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip" "/home/ec2-user/.BuildServer/plugins/amazon-inspector-image-scanner.zip"
@@ -62,7 +62,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           key: ${{ secrets.EC2_INSTANCE }}
-          host: 3.86.251.223
+          host: ${{ secrets.HOST }}
           username: ec2-user
           script: sudo systemctl stop teamcity
 
@@ -73,7 +73,7 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           key: ${{ secrets.EC2_INSTANCE }}
-          host: 3.86.251.223
+          host: ${{ secrets.HOST }}
           username: ec2-user
           script: sudo systemctl start teamcity
 
