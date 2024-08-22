@@ -42,7 +42,7 @@ jobs:
       - name: Copy Built Plugin
         uses: appleboy/scp-action@v0.1.7
         with:
-          key: ${{ secrets.EC2_INSTANCE }}
+          key: ${{ secrets.ID_RSA }}
           host: ${{ secrets.HOST }}
           username: ec2-user
           source: "amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip"
@@ -51,7 +51,7 @@ jobs:
       - name: Copy file
         uses: appleboy/ssh-action@v1.0.3
         with:
-          key: ${{ secrets.EC2_INSTANCE }}
+          key: ${{ secrets.ID_RSA }}
           host: ${{ secrets.HOST }}
           username: ec2-user
           script: |
@@ -61,7 +61,7 @@ jobs:
       - name: Stop TeamCity
         uses: appleboy/ssh-action@v1.0.3
         with:
-          key: ${{ secrets.EC2_INSTANCE }}
+          key: ${{ secrets.ID_RSA }}
           host: ${{ secrets.HOST }}
           username: ec2-user
           script: sudo systemctl stop teamcity
@@ -72,7 +72,7 @@ jobs:
       - name: Start TeamCity
         uses: appleboy/ssh-action@v1.0.3
         with:
-          key: ${{ secrets.EC2_INSTANCE }}
+          key: ${{ secrets.ID_RSA }}
           host: ${{ secrets.HOST }}
           username: ec2-user
           script: sudo systemctl start teamcity
