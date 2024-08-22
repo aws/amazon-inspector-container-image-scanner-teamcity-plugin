@@ -100,3 +100,4 @@ buildPassed = did_build_pass(buildId)
 
 if (not buildPassed):
     sys.exit(1)
+
