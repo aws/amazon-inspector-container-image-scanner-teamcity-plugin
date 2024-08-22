@@ -11,16 +11,19 @@ parser.add_argument('-a')
 parser.add_argument('-p')  
 parser.add_argument('-u') 
 parser.add_argument('-n')
+parser.add_argument('-s')
 
 args = parser.parse_args()
 
 url = args.a
+port = args.s
 username = args.u
 password = args.p
 buildName = args.n
 
 if "http://" not in url:
     url = "http://" + url
+url += ":" + port
 print(url)
 
 def check_status_code(response):
