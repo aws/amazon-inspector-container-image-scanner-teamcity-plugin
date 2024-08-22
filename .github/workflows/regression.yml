@@ -1,0 +1,93 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Regression Lab
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  auth:
+    runs-on: ubuntu-latest
+    outputs:
+      ssh-output: ${{ steps.ssh.outputs.output }}
+
+    steps:
+      - name: Checkout repository content
+        uses: actions/checkout@v2 # Checkout the repository content to github runner.
+
+      - name: AWS Auth
+        run: |
+          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws configure set region us-east-1
+          
+      - name: Enable EC2 Access
+        run: |  
+          IP=$(curl -s http://whatismyip.akamai.com/)
+          echo "::set-output name=ip::$IP"
+          aws ec2 authorize-security-group-ingress --group-name "launch-wizard-4" --protocol -1 --port -1 --cidr $IP/32 --profile default --output text
+      
+      - name: Build plugin
+        run: cd amazon-inspector-image-scanner && mvn -U clean package
+        
+      - name: Copy Built Plugin
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          key: ${{ secrets.ID_RSA }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.INSTANCE_USERNAME }}
+          source: "amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip"
+          target: "/home/ec2-user"
+          
+      - name: Copy file
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          key: ${{ secrets.ID_RSA }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.INSTANCE_USERNAME }}
+          script: |
+            mv "/home/ec2-user/amazon-inspector-image-scanner/target/amazon-inspector-image-scanner.zip" "/home/ec2-user/.BuildServer/plugins/amazon-inspector-image-scanner.zip"
+            rm -rf "/home/ec2-user/amazon-inspector-image-scanner"
+      
+      - name: Stop TeamCity
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          key: ${{ secrets.ID_RSA }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.INSTANCE_USERNAME }}
+          script: sudo systemctl stop teamcity
+
+      - name: wait 30s
+        run: sleep 30s
+            
+      - name: Start TeamCity
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          key: ${{ secrets.ID_RSA }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.INSTANCE_USERNAME }}
+          script: sudo systemctl start teamcity
+
+      - name: wait 1m
+        run: sleep 1m
+
+      - name: Install Python Deps
+        run: pip install requests
+        
+      - name: Run Script
+        run: python .github/workflows/GHATest.py -u ${{ secrets.USERNAME }} -p ${{ secrets.PASSWORD }} -a ${{ secrets.HOST }} -s ${{ secrets.TC_PORT}} -n TEST_TEST
+
+      - name: Revoke EC2 Access
+        if: always()
+        run: |
+          IP=$(curl -s http://whatismyip.akamai.com/)
+          aws ec2 revoke-security-group-ingress --group-name "launch-wizard-4" --protocol -1 --port -1 --cidr $IP/32 --profile default --output text
