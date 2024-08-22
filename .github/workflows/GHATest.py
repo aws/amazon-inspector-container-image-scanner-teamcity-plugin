@@ -19,6 +19,10 @@ username = args.u
 password = args.p
 buildName = args.n
 
+if "http://" not in url:
+    url = "http://" + url
+print(url)
+
 def check_status_code(response):
     if response.status_code != 200:
             print("Recieved non-ok status, aborting")
@@ -43,8 +47,8 @@ def start_build():
         </properties>
     </build>
     """
-
-    # Make the GET request with basic authentication
+    
+        
     response = requests.post(
         url + "/app/rest/buildQueue",
         auth=HTTPBasicAuth(username, password),
@@ -96,4 +100,3 @@ buildPassed = did_build_pass(buildId)
 
 if (not buildPassed):
     sys.exit(1)
-
