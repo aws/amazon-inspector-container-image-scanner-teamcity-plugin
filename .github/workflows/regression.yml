@@ -84,7 +84,7 @@ jobs:
         run: pip install requests
         
       - name: Run Script
-        run: python .github/workflows/GHATest.py -u ${{ secrets.USERNAME }} -p ${{ secrets.PASSWORD }} -a ${{ secrets.HOST }} -n TEST_TEST
+        run: python .github/workflows/GHATest.py -u ${{ secrets.USERNAME }} -p ${{ secrets.PASSWORD }} -a ec2-3-86-251-223.compute-1.amazonaws.com -n TEST_TEST
 
       - name: Revoke EC2 Access
         if: always()
