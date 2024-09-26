@@ -49,6 +49,7 @@ jobs:
          path: |
            ${{ steps.inspector.outputs.inspector_scan_results }}
            ${{ steps.inspector.outputs.artifact_sbom }}
+           ${{ steps.inspector.outputs.inspector_scan_results_markdown }}
 
      - name: Fail if vulns detected
        run: exit ${{ steps.inspector.outputs.vulnerability_threshold_exceeded }}
