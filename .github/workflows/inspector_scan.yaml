@@ -39,7 +39,7 @@ jobs:
      - name: Display vulnerability scan
        run: cat ${{ steps.inspector.outputs.inspector_scan_results }}
 
-    - name: Display vulnerability scan (Markdown)
+     - name: Display vulnerability scan (Markdown)
        run: cat ${{ steps.inspector.outputs.inspector_scan_results_markdown }}
 
      - name: Upload scan results
