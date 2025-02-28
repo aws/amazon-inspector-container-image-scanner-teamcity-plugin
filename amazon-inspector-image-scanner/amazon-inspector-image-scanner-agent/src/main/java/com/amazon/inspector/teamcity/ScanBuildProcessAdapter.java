@@ -107,7 +107,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         String awsProfileName = runnerParameters.get(AWS_PROFILE_NAME);
 
         boolean isThresholdEnabled = Boolean.parseBoolean(runnerParameters.get(IS_THRESHOLD_ENABLED));
-        boolean isThresholdEqual = Boolean.parseBoolean(runnerParameters.get(IS_THRESHOLD_EQUAL));
         publicProgressLogger.message("Threshold: " + isThresholdEnabled);
 
         String activeSbomgenPath = sbomgenPath;
@@ -235,7 +234,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         if (!isThresholdEnabled) {
             progressLogger.message("Ignoring results due to thresholds being disabled.");
         }
-        boolean doesBuildPass = !doesBuildFail(SbomOutputParser.aggregateCounts.getCounts(), isThresholdEqual);
+        boolean doesBuildPass = !doesBuildFail(SbomOutputParser.aggregateCounts.getCounts());
 
         if (!isThresholdEnabled) {
             scanRequestSuccessHandler();
@@ -278,7 +277,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         }
     }
 
-    public boolean doesBuildFail(Map<Severity, Integer> counts, boolean isThresholdEquals) {
+    public boolean doesBuildFail(Map<Severity, Integer> counts) {
         String countCritical = runnerParameters.get(ScanConstants.COUNT_CRITICAL);
         String countHigh = runnerParameters.get(ScanConstants.COUNT_HIGH);
         String countMedium = runnerParameters.get(ScanConstants.COUNT_MEDIUM);
@@ -288,16 +287,6 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         boolean highExceedsLimit = counts.get(Severity.HIGH) > Integer.parseInt(countHigh);
         boolean mediumExceedsLimit = counts.get(Severity.MEDIUM) > Integer.parseInt(countMedium);
         boolean lowExceedsLimit = counts.get(Severity.LOW) > Integer.parseInt(countLow);
-
-        boolean criticalEqualsLimit = counts.get(Severity.CRITICAL) == Integer.parseInt(countCritical);
-        boolean highEqualsLimit = counts.get(Severity.HIGH) == Integer.parseInt(countHigh);
-        boolean mediumEqualsLimit = counts.get(Severity.MEDIUM) == Integer.parseInt(countMedium);
-        boolean lowEqualsLimit = counts.get(Severity.LOW) == Integer.parseInt(countLow);
-
-        if (isThresholdEquals) {
-            publicProgressLogger.message("Threshold should equal vulnerabilites");
-            return !(criticalEqualsLimit && highEqualsLimit && mediumEqualsLimit && lowEqualsLimit);
-        }
 
         return criticalExceedsLimit || highExceedsLimit || mediumExceedsLimit || lowExceedsLimit;
     }
