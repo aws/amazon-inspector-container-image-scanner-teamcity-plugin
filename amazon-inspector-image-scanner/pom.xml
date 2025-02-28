@@ -6,8 +6,8 @@
   <version>1.0</version>
   <packaging>pom</packaging>
   <properties>
-      <maven.compiler.source>6</maven.compiler.source>
-      <maven.compiler.target>1.6</maven.compiler.target>
+      <maven.compiler.source>7</maven.compiler.source>
+      <maven.compiler.target>7</maven.compiler.target>
       <teamcity-version>2021.2</teamcity-version>
   </properties>
   <repositories>
