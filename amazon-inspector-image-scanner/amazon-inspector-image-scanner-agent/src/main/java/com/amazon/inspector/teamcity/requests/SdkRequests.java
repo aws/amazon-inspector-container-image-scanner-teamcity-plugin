@@ -6,6 +6,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.document.Document;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.document.DocumentUnmarshaller;
@@ -47,6 +48,9 @@ public class SdkRequests {
                         .region(Region.of(region))
                         .httpClient(client)
                         .credentialsProvider(getCredentialProvider(workingProfileName, workingCredential))
+                        .overrideConfiguration(ClientOverrideConfiguration.builder()
+                                .putHeader("Accept-Encoding", "gzip")
+                                .build())
                         .build();
 
                 JsonNodeParser jsonNodeParser = JsonNodeParser.create();
