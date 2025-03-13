@@ -24,10 +24,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static com.amazon.inspector.teamcity.ScanBuildProcessAdapter.publicProgressLogger;
 import static com.amazon.inspector.teamcity.html.HtmlConversionUtils.getLineComponents;
+import static com.amazon.inspector.teamcity.utils.ConversionUtils.getSeverity;
 
 public class CsvConverter {
     private SbomData sbomData;
@@ -200,7 +202,7 @@ public class CsvConverter {
 
             CsvData csvData = CsvData.builder()
                     .vulnerabilityId(vulnerability.getId())
-                    .severity(getSeverity(vulnerability))
+                    .severity(getSeverity(vulnerability).toString().toUpperCase(Locale.ROOT))
                     .published(vulnerability.getCreated())
                     .modified(getUpdated(vulnerability))
                     .epssScore(getEpssScore(vulnerability))
@@ -235,7 +237,7 @@ public class CsvConverter {
 
         CsvData csvData = CsvData.builder()
                 .vulnerabilityId(vulnerability.getId())
-                .severity(getSeverity(vulnerability))
+                .severity(getSeverity(vulnerability).toString().toUpperCase(Locale.ROOT))
                 .published(vulnerability.getCreated())
                 .modified(getUpdated(vulnerability))
                 .epssScore(getEpssScore(vulnerability))
@@ -319,33 +321,5 @@ public class CsvConverter {
         }
 
         return "N/A";
-    }
-
-    protected String getSeverity(Vulnerability vulnerability) {
-        final String OTHER = "OTHER";
-
-        if (vulnerability == null || vulnerability.getRatings() == null) {
-            return OTHER;
-        }
-
-        List<Rating> ratings = vulnerability.getRatings();
-
-        if (ratings.isEmpty()) {
-            return OTHER;
-        }
-
-        final String nvd = "NVD";
-        final String cvss = "CVSSv3";
-
-        for (Rating rating : ratings) {
-            String sourceName = rating.getSource().getName();
-            String method = rating.getMethod();
-
-            if (sourceName.equals(nvd) && method.startsWith(cvss)) {
-                return rating.getSeverity();
-            }
-        }
-
-        return ratings.get(0).getSeverity();
     }
 }

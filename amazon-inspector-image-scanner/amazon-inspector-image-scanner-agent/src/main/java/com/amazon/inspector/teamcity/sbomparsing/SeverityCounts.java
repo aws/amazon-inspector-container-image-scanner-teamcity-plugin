@@ -25,6 +25,14 @@ public class SeverityCounts {
         counts.put(OTHER, 0);
     }
 
+    public SeverityCounts(int critical, int high, int medium, int low, int other) {
+        counts.put(CRITICAL, critical);
+        counts.put(HIGH, high);
+        counts.put(MEDIUM, medium);
+        counts.put(LOW, low);
+        counts.put(OTHER, other);
+    }
+
     public void increment(Severity severityToIncrement) {
         if (counts.containsKey(severityToIncrement)) {
             counts.put(severityToIncrement, counts.get(severityToIncrement) + 1);
