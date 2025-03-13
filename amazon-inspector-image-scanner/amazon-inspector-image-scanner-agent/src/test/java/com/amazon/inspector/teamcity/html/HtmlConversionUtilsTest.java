@@ -12,8 +12,6 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static com.amazon.inspector.teamcity.html.HtmlConversionUtils.getSeverity;
-import static com.amazon.inspector.teamcity.html.HtmlConversionUtils.sortVulnerabilitiesBySeverity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -26,7 +24,8 @@ public class HtmlConversionUtilsTest {
                 .ratings(List.of(Rating.builder().source(
                         Source.builder().name("NVD").build()
                 )
-                        .severity("HIGH").build()))
+                .method("CVSSv3")
+                .severity("HIGH").build()))
                 .affects(List.of(Affect.builder().ref("bom").build()))
                 .build();
         List<Vulnerability> vulnerabilities = List.of(vulnerability);
@@ -49,6 +48,7 @@ public class HtmlConversionUtilsTest {
                 .ratings(List.of(Rating.builder().source(
                                 Source.builder().name("NVD").build()
                         )
+                        .method("CVSSv3")
                         .severity("HIGH").build()))
                 .affects(List.of(Affect.builder().ref("bom").build()))
                 .build();
@@ -78,7 +78,7 @@ public class HtmlConversionUtilsTest {
 
         List<HtmlVulnerability> htmlVulnerabilities = HtmlConversionUtils.convertVulnerabilities(vulnerabilities, components);
 
-        assertEquals(htmlVulnerabilities.get(0).severity, "Untriaged");
+        assertEquals(htmlVulnerabilities.get(0).severity, "NONE");
     }
 
     @Test
@@ -107,6 +107,7 @@ public class HtmlConversionUtilsTest {
                 .ratings(List.of(Rating.builder().source(
                                 Source.builder().name("NVD").build()
                         )
+                        .method("CVSSv3")
                         .severity("HIGH").build()))
                 .affects(List.of(Affect.builder().ref("bom").build()))
                 .build();
@@ -131,6 +132,7 @@ public class HtmlConversionUtilsTest {
                 .ratings(List.of(Rating.builder().source(
                                 Source.builder().name("NVD").build()
                         )
+                        .method("CVSSv3")
                         .severity("HIGH").build()))
                 .affects(List.of(Affect.builder().ref("bom").build()))
                 .build();
@@ -161,7 +163,7 @@ public class HtmlConversionUtilsTest {
 
         List<DockerVulnerability> htmlVulnerabilities = HtmlConversionUtils.convertDocker(vulnerabilities, components);
 
-        assertEquals(htmlVulnerabilities.get(0).severity, "Untriaged");
+        assertEquals(htmlVulnerabilities.get(0).severity, "NONE");
     }
 
     @Test
@@ -190,6 +192,7 @@ public class HtmlConversionUtilsTest {
                 .ratings(List.of(Rating.builder().source(
                                 Source.builder().name("NVD").build()
                         )
+                        .method("CVSSv3")
                         .severity("HIGH").build()))
                 .affects(List.of(Affect.builder().ref("bom").build()))
                 .build();
@@ -240,24 +243,5 @@ public class HtmlConversionUtilsTest {
                 .name(id)
                 .build());
         assertEquals(HtmlConversionUtils.getLines("invalid", properties), "N/A");
-    }
-
-    @Test
-    public void testSortVulnerabilitiesBySeverity() {
-        assertEquals(sortVulnerabilitiesBySeverity("high", "low"), -2);
-        assertEquals(sortVulnerabilitiesBySeverity("low", "high"), 2);
-        assertEquals(sortVulnerabilitiesBySeverity("high", "high"), 0);
-    }
-
-    @Test
-    public void testGetSeverity_noNVD() {
-        assertEquals(getSeverity(
-                List.of(
-                        Rating.builder()
-                                .severity("low")
-                                .source(Source.builder()
-                                        .name("NonNVD").build()
-                                ).build())
-        ), "low");
     }
 }

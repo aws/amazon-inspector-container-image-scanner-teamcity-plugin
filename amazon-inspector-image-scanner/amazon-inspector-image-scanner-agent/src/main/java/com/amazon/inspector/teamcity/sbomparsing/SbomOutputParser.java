@@ -8,6 +8,8 @@ import lombok.Getter;
 
 import java.util.List;
 
+import static com.amazon.inspector.teamcity.utils.ConversionUtils.getSeverity;
+
 public class SbomOutputParser {
     @Getter
     private SbomData sbom;
@@ -30,9 +32,7 @@ public class SbomOutputParser {
         }
 
         for (Vulnerability vulnerability : vulnerabilities) {
-            List<Rating> ratings = vulnerability.getRatings();
-
-            Severity severity = getHighestRatingFromList(ratings);
+            Severity severity = getSeverity(vulnerability);
 
             if (vulnerability.getId().contains("IN-DOCKER")) {
                 dockerCounts.increment(severity);
@@ -41,27 +41,5 @@ public class SbomOutputParser {
             }
             aggregateCounts.increment(severity);
         }
-    }
-
-
-    @VisibleForTesting
-    protected Severity getHighestRatingFromList(List<Rating> ratings) {
-        Severity highestSeverity = null;
-
-        if (ratings == null || ratings.size() == 0) {
-            return Severity.OTHER;
-        }
-
-        for (Rating rating : ratings) {
-            Severity severity = Severity.getSeverityFromString(rating.getSeverity());
-
-            if (highestSeverity == null) {
-                highestSeverity = severity;
-            }
-
-            highestSeverity = Severity.getHigherSeverity(highestSeverity, severity);
-        }
-
-        return highestSeverity;
     }
 }

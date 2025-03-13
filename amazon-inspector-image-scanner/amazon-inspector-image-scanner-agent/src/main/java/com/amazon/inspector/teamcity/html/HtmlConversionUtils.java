@@ -15,6 +15,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
+
+import static com.amazon.inspector.teamcity.utils.ConversionUtils.getSeverity;
 
 public class HtmlConversionUtils {
 
@@ -30,7 +33,7 @@ public class HtmlConversionUtils {
                 continue;
             }
 
-            String severity = getSeverity(vulnerability.getRatings());
+            String severity = getSeverity(vulnerability).toString().toUpperCase(Locale.ROOT);
             if (severity == null) {
                 severity = "Untriaged";
             }
@@ -76,7 +79,6 @@ public class HtmlConversionUtils {
 
     public static List<Component> getLineComponents(List<Component> components) {
         List<Component> lineComponents = new ArrayList<>();
-
         if (components == null) {
             return lineComponents;
         }
@@ -104,10 +106,7 @@ public class HtmlConversionUtils {
                 continue;
             }
 
-            String severity = getSeverity(vulnerability.getRatings());
-            if (severity == null) {
-                severity = "Untriaged";
-            }
+            String severity = getSeverity(vulnerability).toString().toUpperCase(Locale.ROOT);
 
             String description = vulnerability.getDescription();
 
@@ -139,7 +138,8 @@ public class HtmlConversionUtils {
         return dockerVulnerabilities;
     }
 
-    static int sortVulnerabilitiesBySeverity(String s1, String s2) {
+
+    private static int sortVulnerabilitiesBySeverity(String s1, String s2) {
         Severity sev1 = Severity.getSeverityFromString(s1);
         Severity sev2 = Severity.getSeverityFromString(s2);
 
@@ -154,19 +154,5 @@ public class HtmlConversionUtils {
         }
 
         return null;
-    }
-
-    static String getSeverity(List<Rating> ratings) {
-        if (ratings == null || ratings.size() == 0) {
-            return null;
-        }
-
-        for (Rating rating : ratings) {
-            if (rating.getSource().getName().equals("NVD")) {
-                return rating.getSeverity();
-            }
-        }
-
-        return ratings.get(0).getSeverity();
     }
 }

@@ -12,7 +12,6 @@ import java.util.Map;
 
 import static com.amazon.inspector.teamcity.ScanBuildProcessAdapter.publicProgressLogger;
 import static com.amazon.inspector.teamcity.sbomgen.SbomgenUtils.processSbomgenOutput;
-import static com.amazon.inspector.teamcity.sbomgen.SbomgenUtils.stripProperties;
 
 public class SbomgenRunner {
     public String sbomgenPath;

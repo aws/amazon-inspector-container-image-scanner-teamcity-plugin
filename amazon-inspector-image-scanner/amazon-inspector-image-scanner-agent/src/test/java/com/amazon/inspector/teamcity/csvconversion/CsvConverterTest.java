@@ -15,7 +15,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.amazon.inspector.teamcity.sbomparsing.Severity.NONE;
 import static com.amazon.inspector.teamcity.sbomparsing.Severity.OTHER;
+import static com.amazon.inspector.teamcity.utils.ConversionUtils.getSeverity;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -26,7 +28,7 @@ public class CsvConverterTest {
 
     @Before
     public void setUp() throws IOException {
-        sbomData = new Gson().fromJson(TestUtils.readStringFromFile("src/test/resources/data/SbomOutputExample.json"), SbomData.class);
+        sbomData = new Gson().fromJson(TestUtils.readStringFromFile("src/test/resources/data/SbomOutputDockerExample.json"), SbomData.class);
     }
 
     @Test
@@ -41,7 +43,7 @@ public class CsvConverterTest {
         csvConverter = new CsvConverter(sbomData);
         csvConverter.routeVulnerabilities();
         SeverityCounts counts = new SeverityCounts();
-        assertEquals(123007, csvConverter.convertVulnerabilities("imageName", "imageSha", "buildId", counts).length());
+        assertEquals(122985, csvConverter.convertVulnerabilities("imageName", "imageSha", "buildId", counts).length());
     }
 
     @Test
@@ -92,10 +94,10 @@ public class CsvConverterTest {
     }
 
     @Test
-    public void getSeverity_emptyRatingsReturnsOTHER() {
+    public void getSeverity_emptyRatingsReturnsNONE() {
         csvConverter = new CsvConverter(sbomData);
         Vulnerability vulnerability = Vulnerability.builder().ratings(new ArrayList<>()).build();
-        assertTrue(csvConverter.getSeverity(vulnerability).equals(OTHER.name()));
+        assertTrue(getSeverity(vulnerability).equals(NONE));
     }
 
     @Test
