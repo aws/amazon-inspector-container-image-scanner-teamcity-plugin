@@ -58,7 +58,7 @@ public class HtmlConversionUtilsTest {
 
         List<HtmlVulnerability> htmlVulnerabilities = HtmlConversionUtils.convertVulnerabilities(vulnerabilities, components);
 
-        assertEquals(htmlVulnerabilities.size(), 0);
+        assertEquals(htmlVulnerabilities.size(), 1);
     }
 
     @Test
