@@ -46,6 +46,7 @@ import static com.amazon.inspector.teamcity.ScanConstants.AWS_PROFILE_NAME;
 import static com.amazon.inspector.teamcity.ScanConstants.AWS_SECRET_KEY;
 import static com.amazon.inspector.teamcity.ScanConstants.HTML_PATH;
 import static com.amazon.inspector.teamcity.ScanConstants.IS_THRESHOLD_ENABLED;
+import static com.amazon.inspector.teamcity.ScanConstants.IS_THRESHOLD_EQUAL;
 import static com.amazon.inspector.teamcity.ScanConstants.SBOMGEN_PATH;
 import static com.amazon.inspector.teamcity.ScanConstants.DOCKER_PASSWORD;
 import static com.amazon.inspector.teamcity.ScanConstants.DOCKER_USERNAME;
@@ -206,7 +207,7 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
                         .tags(tag)
                         .sha(imageSha)
                         .build())
-                .docker(HtmlConversionUtils.convertDocker(sbomData.getSbom().getMetadata(), sbomData.getSbom().getVulnerabilities(),
+                .docker(HtmlConversionUtils.convertDocker(sbomData.getSbom().getVulnerabilities(),
                         sbomData.getSbom().getComponents()))
                 .vulnerabilities(HtmlConversionUtils.convertVulnerabilities(sbomData.getSbom().getVulnerabilities(),
                         sbomData.getSbom().getComponents()))

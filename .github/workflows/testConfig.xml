@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<build-type xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" uuid="1b621030-60ad-4352-84f4-58d4a41d6747" xsi:noNamespaceSchemaLocation="https://www.jetbrains.com/teamcity/schemas/2021.1/project-config.xsd">
+  <name>test</name>
+  <description />
+  <settings>
+    <parameters />
+    <build-runners>
+      <runner id="Validate_Explicit_Credentials" name="Validate Explicit Credentials" type="amazon-inspector-build-runner">
+        <parameters>
+          <param name="archivePath" value="alpine:latest" />
+          <param name="awsProfileName" value="default" />
+          <param name="countCritical" value="0" />
+          <param name="countHigh" value="0" />
+          <param name="countLow" value="0" />
+          <param name="countMedium" value="0" />
+          <param name="isThresholdEnabled" value="true" />
+          <param name="isThresholdEqual" value="true" />
+          <param name="region" value="us-east-1" />
+          <param name="roleArn" value="arn:aws:iam::099560195162:role/CICDScan" />
+          <param name="sbomgenSelection" value="linuxAmd64" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+      <runner id="Validate_Profile_Name" name="Validate Profile Name" type="amazon-inspector-build-runner">
+        <parameters>
+          <param name="archivePath" value="alpine:3.20" />
+          <param name="awsProfileName" value="test" />
+          <param name="countCritical" value="0" />
+          <param name="countHigh" value="0" />
+          <param name="countLow" value="0" />
+          <param name="countMedium" value="0" />
+          <param name="isThresholdEnabled" value="true" />
+          <param name="isThresholdEqual" value="true" />
+          <param name="region" value="us-east-1" />
+          <param name="roleArn" value="arn:aws:iam::099560195162:role/CICDScan" />
+          <param name="sbomgenSelection" value="linuxAmd64" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+      <runner id="Validate_Default_Profile" name="Validate Default Profile" type="amazon-inspector-build-runner">
+        <parameters>
+          <param name="archivePath" value="alpine:3.20" />
+          <param name="awsProfileName" value="default" />
+          <param name="countCritical" value="0" />
+          <param name="countHigh" value="0" />
+          <param name="countLow" value="0" />
+          <param name="countMedium" value="0" />
+          <param name="isThresholdEnabled" value="true" />
+          <param name="isThresholdEqual" value="true" />
+          <param name="region" value="us-east-1" />
+          <param name="roleArn" value="arn:aws:iam::099560195162:role/CICDScan" />
+          <param name="sbomgenSelection" value="linuxAmd64" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+      <runner id="Validate_No_Vulns" name="Validate No Vulns" type="amazon-inspector-build-runner">
+        <parameters>
+          <param name="archivePath" value="alpine:3.20" />
+          <param name="awsProfileName" value="default" />
+          <param name="countCritical" value="0" />
+          <param name="countHigh" value="0" />
+          <param name="countLow" value="0" />
+          <param name="countMedium" value="0" />
+          <param name="isThresholdEnabled" value="true" />
+          <param name="isThresholdEqual" value="true" />
+          <param name="region" value="us-east-1" />
+          <param name="roleArn" value="arn:aws:iam::099560195162:role/CICDScan" />
+          <param name="sbomgenSelection" value="linuxAmd64" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+      <runner id="Validate_Package_Vulns" name="Validate Package Vulns" type="amazon-inspector-build-runner">
+        <parameters>
+          <param name="archivePath" value="ubuntu:14.04" />
+          <param name="awsProfileName" value="default" />
+          <param name="countCritical" value="48" />
+          <param name="countHigh" value="224" />
+          <param name="countLow" value="7" />
+          <param name="countMedium" value="103" />
+          <param name="isThresholdEnabled" value="true" />
+          <param name="isThresholdEqual" value="true" />
+          <param name="region" value="us-east-1" />
+          <param name="roleArn" value="arn:aws:iam::099560195162:role/CICDScan" />
+          <param name="sbomgenSelection" value="linuxAmd64" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+      <runner id="Validate_Docker_and_Package_Vulns" name="Validate Docker and Package Vulns" type="amazon-inspector-build-runner">
+        <parameters>
+          <param name="archivePath" value="waltwilo/test:latest" />
+          <param name="awsProfileName" value="default" />
+          <param name="countCritical" value="49" />
+          <param name="countHigh" value="227" />
+          <param name="countLow" value="7" />
+          <param name="countMedium" value="103" />
+          <param name="isThresholdEnabled" value="true" />
+          <param name="isThresholdEqual" value="true" />
+          <param name="region" value="us-east-1" />
+          <param name="roleArn" value="arn:aws:iam::099560195162:role/CICDScan" />
+          <param name="sbomgenSelection" value="linuxAmd64" />
+          <param name="teamcity.step.mode" value="default" />
+        </parameters>
+      </runner>
+    </build-runners>
+    <vcs-settings />
+    <requirements />
+    <build-triggers />
+    <cleanup />
+  </settings>
+</build-type>
+

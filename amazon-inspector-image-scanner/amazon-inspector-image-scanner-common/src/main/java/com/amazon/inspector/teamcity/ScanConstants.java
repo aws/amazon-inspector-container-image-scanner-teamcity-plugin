@@ -17,5 +17,6 @@ public class ScanConstants {
 	public static final String SBOMGEN_PATH = "sbomgenPath";
 	public static final String HTML_PATH = "htmlPath";
 	public static final String IS_THRESHOLD_ENABLED = "isThresholdEnabled";
+	public static final String IS_THRESHOLD_EQUAL = "isThresholdEqual";
 	public static final String SBOMGEN_SELECTION = "sbomgenSelection";
 }
