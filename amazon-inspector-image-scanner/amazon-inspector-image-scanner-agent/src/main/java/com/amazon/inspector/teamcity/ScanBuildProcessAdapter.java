@@ -231,10 +231,13 @@ public class ScanBuildProcessAdapter extends AbstractBuildProcessAdapter {
         progressLogger.message("Files can also be downloaded from the artifacts tab.");
 
         progressLogger.message(SbomOutputParser.aggregateCounts.toString());
+        boolean doesBuildPass = true;
         if (!isThresholdEnabled) {
             progressLogger.message("Ignoring results due to thresholds being disabled.");
+        } else {
+            doesBuildPass = !doesBuildFail(SbomOutputParser.aggregateCounts.getCounts());
         }
-        boolean doesBuildPass = !doesBuildFail(SbomOutputParser.aggregateCounts.getCounts());
+
 
         if (!isThresholdEnabled) {
             scanRequestSuccessHandler();
